@@ -128,7 +128,7 @@ describe('core', function () {
 	    assert.equal(attrs.z, core.get('z'), 'failed to preserve z after object argument');
 	});
 
-	describe('#async', function () {
+	describe(':async', function () {
 	    it('should be provided', function (done) {
 		newCore({x: 1}).set('x', 2, done);
 	    });
@@ -189,7 +189,7 @@ describe('core', function () {
 	    assert.deepEqual(core.toJSON(), {z: 3}, 'multiple properties were not unset');
 	});
 
-	describe('#async', function () {
+	describe(':async', function () {
 	    it('should be provided', function (done) {
 		newCore({x: 1}).unset('x', 2, done);
 	    });
