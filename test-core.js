@@ -139,10 +139,10 @@ describe('core', function () {
 		;
 		core.set('x', x, function (err) {
 		    assert.ifError(err);
-		    var newCore = newCore(core.channel);
-		    newCore.fetch(function (err) {
+		    var dup = dup(core.channel);
+		    dup.fetch(function (err) {
 			assert.ifError(err);
-			assert.equal(newCore.get('x'), x);
+			assert.equal(dup.get('x'), x);
 			return done();
 		    });
 		});
@@ -202,10 +202,10 @@ describe('core', function () {
 		    assert.ifError('x');
 		    core.unset('x', function (err) {
 			assert.ifError(err);
-			var newCore = newCore(core.channel);
-			newCore.fetch(function (err) {
+			var dup = dup(core.channel);
+			dup.fetch(function (err) {
 			    assert.ifError(err);
-			    assert(!newCore.has('x'), 'property was not removed.');
+			    assert(!dup.has('x'), 'property was not removed.');
 			    return done();
 			});
 		    });
@@ -230,10 +230,10 @@ describe('core', function () {
 	    var core = newCore({x: 1});
 	    core.clear(function (err) {
 		assert.ifError(err);
-		var newCore = newCore(core.channel);
-		newCore.fetch(function (err) {
+		var dup = newCore(core.channel);
+		dup.fetch(function (err) {
 		    assert.ifError(err);
-		    assert.deepEqual(newCore.toJSON(), {}, 'core was not cleared');
+		    assert.deepEqual(dup.toJSON(), {}, 'core was not cleared');
 		    return done();
 		});
 
