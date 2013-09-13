@@ -40,14 +40,14 @@ describe('core', function () {
     });
 
     it('should have a channel attribute', function () {
-	assert(newCore().hasOwnProperty('channel'), 'core did not have a channel property');
+	assert(newCore().channel, 'core did not have a channel property');
     });
 
     describe('#fetch', function () {
 
 	it('should exist', function () {
 	    var core = newCore();
-	    assert(core.hasOwnProperty('fetch'), 'core did not have a fetch property');
+	    assert(core.fetch, 'core did not have a fetch property');
 	    assert(typeof core.fetch === 'function', 'core.fetch was not a function');
 	});
 
@@ -71,7 +71,7 @@ describe('core', function () {
 
 	it('should exist', function () {
 	    var core = newCore();
-	    assert(core.hasOwnProperty('get'));
+	    assert(core.get);
 	    assert.equal(typeof core.get, 'function', '"get" was not a function');
 	});
 
@@ -153,7 +153,7 @@ describe('core', function () {
     describe('#has', function () {
 	it('should exist', function () {
 	    var core = newCore();
-	    assert(core.hasOwnProperty('has'), '"has" does not exist');
+	    assert(core.has, '"has" does not exist');
 	    assert.equal(typeof core.has, 'function', '"has" is not a function');
 	});
 
@@ -167,7 +167,7 @@ describe('core', function () {
     describe('#unset', function () {
 	it('should exist', function () {
 	    var core = newCore();
-	    assert(core.hasOwnProperty('unset'), '"unset" does not exist');
+	    assert(core.unset, '"unset" does not exist');
 	    assert.equal(typeof core.unset, 'function', '"unset" is not a function');
 	});
 
@@ -218,7 +218,7 @@ describe('core', function () {
 
 	it('should exist', function () {
 	    var core = newCore();
-	    assert(core.hasOwnProperty('clear'), 'core did not have a "clear" property'); 
+	    assert(core.clear, 'core did not have a "clear" property'); 
 	    assert(typeof core.clear, 'function', '"clear" property was not a function')
 	});
 
@@ -226,7 +226,7 @@ describe('core', function () {
 	    newCore({x: 1}).clear(done);
 	});
 
-	it('should clear all properties', function () {
+	it('should clear all properties', function (done) {
 	    var core = newCore({x: 1});
 	    core.clear(function (err) {
 		assert.ifError(err);
