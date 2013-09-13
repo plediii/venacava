@@ -182,6 +182,58 @@ describe('core', function () {
 	    core.unset('x')
 	    assert(!core.toJSON().hasOwnProperty('x'), 'unset did not change "has" value');
 	});
+
+	describe('#async', function () {
+	    it('should be provided', function (done) {
+		newCore({x: 1}).unset('x', 2, done);
+	    });
+
+	    it('should guarantee that the unset in the fetch source', function (done) {
+		var core = newCore()
+		, x = Math.random()
+		;
+		core.set('x', 1, function (err) {
+		    assert.ifError('x');
+		    core.unset('x', function (err) {
+			assert.ifError(err);
+			var newCore = newCore(core.channel);
+			newCore.fetch(function (err) {
+			    assert.ifError(err);
+			    assert(!newCore.has('x'), 'property was not removed.');
+			    return done();
+			});
+		    });
+		});
+	    });
+	});
+    });
+
+    describe('#clear', function () {
+
+	it('should exist', function () {
+	    var core = newCore();
+	    assert(core.hasOwnProperty('clear'), 'core did not have a "clear" property'); 
+	    assert(typeof core.clear, 'function', '"clear" property was not a function')
+	});
+
+	it('should provide async', function (done) {
+	    newCore({x: 1}).clear(done);
+	});
+
+	it('should clear all properties', function () {
+	    var core = newCore({x: 1});
+	    core.clear(function (err) {
+		assert.ifError(err);
+		var newCore = newCore(core.channel);
+		newCore.fetch(function (err) {
+		    assert.ifError(err);
+		    assert.deepEqual(newCore.toJSON(), {}, 'core was not cleared');
+		    return done();
+		});
+
+	    });
+	});
+
     });
 
     describe('redis subscription', function () {
