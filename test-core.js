@@ -77,7 +77,7 @@ describe('core', function () {
 
 	it('should synchronously return a single cached value for a single argument', function () {
 	    var x = Math.random()
-	    , core = newCore({x: 1})
+	    , core = newCore({x: x})
 	    ;
 	    assert.equal(core.get('x'), x, 'did not get the initial cached value');
 	});
@@ -139,7 +139,7 @@ describe('core', function () {
 		;
 		core.set('x', x, function (err) {
 		    assert.ifError(err);
-		    var dup = dup(core.channel);
+		    var dup = newCore(core.channel);
 		    dup.fetch(function (err) {
 			assert.ifError(err);
 			assert.equal(dup.get('x'), x);
