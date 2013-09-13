@@ -183,6 +183,12 @@ describe('core', function () {
 	    assert(!core.toJSON().hasOwnProperty('x'), 'unset did not change "has" value');
 	});
 
+	it('should unset multiple keys when given an object', function () {
+	    var core = newCore({x: 1, y: 2, z: 3});
+	    core.unset({x: true, y: true});
+	    assert.deepEqual(core.toJSON(), {z: 3}, 'multiple properties were not unset');
+	});
+
 	describe('#async', function () {
 	    it('should be provided', function (done) {
 		newCore({x: 1}).unset('x', 2, done);
