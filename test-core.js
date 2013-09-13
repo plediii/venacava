@@ -36,7 +36,7 @@ describe('core', function () {
     });
 
     it('should be constructable', function () {
-	newCore({x: 1})
+	newCore({x: 1});
     });
 
     it('should have a channel attribute', function () {
@@ -251,13 +251,16 @@ describe('core', function () {
 	    ;
 	    subRedis.on('message', function (channel, msg) {
 		assert.equal(channel, core.channel, 'received message on unknown channel.');
-		assert.deepEqual(msg, attrs);
+		var obj = JSON.parse(msg);
+		assert.deepEqual(obj, attrs);
 		done();
 	    });
 
-	    subRedis.subscribe(core.channel);
-
-	    core.set(attrs);
+	    subRedis.subscribe(core.channel); 
+	    subRedis.on('subscribe', function (channel, count) {
+		assert.equal(channel, core.channel, 'suscribed to unknown channel.');
+		core.set(attrs);
+	    });
 	});
 
 	it('should send unset updates', function (done) {
@@ -266,15 +269,18 @@ describe('core', function () {
 	    , attrs = {x: 1}
 	    ;
 	    subRedis.on('message', function (channel, msg) {
+		var obj = JSON.parse(msg);
 		assert.equal(channel, core.channel, 'received message on unknown channel.');
-		assert(msg.hasOwnProperty('x'), 'unset did not send a message for the unset property.');
-		assert.equal(msg.x, void 0, 'unset did not send a message with undefined for the unset property.');
+		assert(obj.hasOwnProperty('x'), 'unset did not send a message for the unset property.');
+		assert.equal(obj.x, void 0, 'unset did not send a message with undefined for the unset property.');
 		done();
 	    });
 
 	    subRedis.subscribe(core.channel);
-
-	    core.unset('x');
+	    subRedis.on('subscribe', function (channel, count) {
+		assert.equal(channel, core.channel, 'suscribed to unknown channel.');
+		core.unset('x');
+	    });
 	});
 
     });
