@@ -179,7 +179,7 @@ describe('core', function () {
 
 	it('should change whether the attribute appears on toJSON ', function () {
 	    var core = newCore({x: 1});
-	    core.unset('x')
+	    core.unset('x');
 	    assert(!core.toJSON().hasOwnProperty('x'), 'unset did not change "has" value');
 	});
 
@@ -190,19 +190,19 @@ describe('core', function () {
 	});
 
 	describe(':async', function () {
-	    it('should be provided', function (done) {
-		newCore({x: 1}).unset('x', 2, done);
+	    it('should exist', function (done) {
+		newCore({x: 1}).unset('x', done);
 	    });
 
-	    it('should guarantee that the unset in the fetch source', function (done) {
+	    it('should guarantee that the property was unset in the fetch source', function (done) {
 		var core = newCore()
 		, x = Math.random()
 		;
 		core.set('x', 1, function (err) {
-		    assert.ifError('x');
+		    assert.ifError(err);
 		    core.unset('x', function (err) {
 			assert.ifError(err);
-			var dup = dup(core.channel);
+			var dup = newCore(core.channel);
 			dup.fetch(function (err) {
 			    assert.ifError(err);
 			    assert(!dup.has('x'), 'property was not removed.');
@@ -227,16 +227,19 @@ describe('core', function () {
 	});
 
 	it('should clear all properties', function (done) {
-	    var core = newCore({x: 1});
-	    core.clear(function (err) {
+	    var core = newCore();
+	    core.set('x', 1, function (err) {
 		assert.ifError(err);
-		var dup = newCore(core.channel);
-		dup.fetch(function (err) {
+		core.clear(function (err) {
 		    assert.ifError(err);
-		    assert.deepEqual(dup.toJSON(), {}, 'core was not cleared');
-		    return done();
-		});
+		    var dup = newCore(core.channel);
+		    dup.fetch(function (err) {
+			assert.ifError(err);
+			assert.deepEqual(dup.toJSON(), {}, 'core was not cleared in the backend: ' + JSON.stringify(dup.toJSON()));
+			return done();
+		    });
 
+		});
 	    });
 	});
 
