@@ -253,9 +253,12 @@ describe('core', function () {
 	    , attrs = {x: 1}
 	    ;
 	    subRedis.on('message', function (channel, msg) {
-		assert.equal(channel, core.channel, 'received message on unknown channel.');
 		var obj = JSON.parse(msg);
-		assert.deepEqual(obj, attrs);
+		assert.equal(channel, core.channel, 'received message on unknown channel.');
+		assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+		assert.equal(obj.subject, 'set', 'message subject was not unset.');
+		assert(obj.hasOwnProperty('body'), 'message did not have a body');
+		assert.deepEqual(obj.body, attrs, 'wrong message body');
 		done();
 	    });
 
@@ -274,8 +277,10 @@ describe('core', function () {
 	    subRedis.on('message', function (channel, msg) {
 		var obj = JSON.parse(msg);
 		assert.equal(channel, core.channel, 'received message on unknown channel.');
-		assert(obj.hasOwnProperty('x'), 'unset did not send a message for the unset property.');
-		assert.equal(obj.x, void 0, 'unset did not send a message with undefined for the unset property.');
+		assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+		assert.equal(obj.subject, 'unset', 'message subject was not unset.');
+		assert(obj.hasOwnProperty('body'), 'message did not have a body');
+		assert(obj.body.hasOwnProperty('x'), 'message body did not have the expected atribute');
 		done();
 	    });
 
