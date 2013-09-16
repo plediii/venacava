@@ -68,10 +68,17 @@ describe('instance', function () {
 		it ('should override defaults with creation parameter', function () {
 		    var attrs = {x: 2}
 		    , instance = newModel({
-			defaults: {x: 1}
+			defaults: {
+			    x: 1
+			    , y: 1
+			}
 		    }).create(attrs)
 		    ;
-		    assert.deepEqual(instance.core.toJSON(), attrs, 'initial core defaults were not overriden by creation argument.');
+		    assert.deepEqual(instance.core.toJSON(), {
+			x: 2
+			, y: 1
+		    }, 'initial core defaults were not overriden by creation argument.');
+		    assert.deepEqual(attrs, {x: 2}, 'creation argument was mutated');
 		});
 	    });
 
