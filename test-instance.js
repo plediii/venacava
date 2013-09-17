@@ -16,7 +16,7 @@ var randomId = function () {
 };
 
 
-describe('instance', function () {
+describe('Model', function () {
 
     var redis
     , newModel = function (proto) {
@@ -32,6 +32,18 @@ describe('instance', function () {
 
     it('should be constructable', function () {
 	assert(newModel({}), 'unable to create a new model');
+    });
+
+    describe('#proto', function () {
+	it('should exist', function () {
+	    assert(newModel({}).proto, 'model did not have a proto property.');
+	});
+
+	it('should have the functions from the construction argument', function () {
+	    assert(newModel({
+		method: function () {}
+	    }).proto.method, 'model proto did not have the argument\'s');
+	});
     });
 
     describe('#create', function () {
