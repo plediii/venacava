@@ -293,11 +293,12 @@ _.extend(Core.prototype, {
 var Model = exports.Model = function (redis, proto) {
     var _this = this
     ;
-    _this._redis = redis
-    _this.defaults = {}
+    _this._redis = redis;
+    _this.defaults = {};
     _this.Klass = function (core) {
 	this.core = core;
-    }
+    };
+    _this.proto = proto;
     _this.defaults = proto.defaults;
 
     _.extend(_this.Klass.prototype, proto);
