@@ -320,6 +320,64 @@ _.extend(Model.prototype, {
     }
 });
 
+var Proxy = exports.Proxy = function (redis, model) {
+    var _this = this
+    ;
+    _this.redis = redis;
+    _this.model = model;
+    var Klass = _this.Klass = function (channel) {
+	this.channel = channel;
+    };
+
+    _.each(model.proto, function (func, name) {
+	Klass.prototype[name] = function () {
+	    var channel = this.channel
+	    , args = _.toArray(arguments)
+	    , instance = _this.model.get(channel)
+	    ;
+	    instance.core.fetch(function (err) {
+		if (err) {
+		    log('error fetching core for channel ', channel, err);
+		    return;
+		}
+		else {
+		    
+		    var argCb = void 0
+		    ;
+		    if (_.last(args) === 'function') {
+			argCb = args.pop();
+		    }
+		    args.push(function (err) {
+			if (err && !argCb) {
+			    log('uncaught error when invoking ', channel, '.', name, err);
+			}
+			else if (argCb) {
+			    return argCb.apply(null, arguments);
+			}
+		    });
+
+		    return func.apply(instance, args);
+		}
+	    });
+	};
+    });
+};
+
+_.extend(Proxy.prototype, {
+    create: function (attrs) {
+	var _this = this
+	, model = _this.model
+	, instance = model.create(attrs)
+	;
+	
+	return new _this.Klass(instance.core.channel);
+    }
+    , get: function (channel) {
+	var _this = this;
+	return new _this.Klass(channel);
+    }
+});
+
 var printExec = function (err, replies) {
     log('exec err = ', err);
     if (replies) {
