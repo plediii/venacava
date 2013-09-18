@@ -50,8 +50,8 @@ describe('proxy', function () {
 	    , proxy = newProxy(model)
 	    , instance = proxy.create({x: 1})
 	    ;
-	    assert(proxy.channel, 'proxy does not have a channel property');
-	    var dup = model.get(proxy.channel);
+	    assert(instance.channel, 'proxy instance does not have a channel property');
+	    var dup = model.get(instance.channel);
 	    dup.core.fetch(function (err) {
 		assert.ifError(err);
 		assert.deepEqual(dup.core.toJSON(), {x: 1});
@@ -86,7 +86,7 @@ describe('proxy', function () {
 	    var proxy = newProxy(newModel({
 		method: function () {}
 	    }))
-	    , instance = proxy.get(randomd())
+	    , instance = proxy.get(randomId())
 	    ;
 	    assert(instance.method, 'proxy does not have the target model\'s method');
 	});
@@ -144,7 +144,7 @@ describe('proxy', function () {
 
 		var add = function (core, cb) {
 		    return function () {
-			core.set('notes', (core.get('notes') || []).conat([note])); 
+			core.set('notes', (core.get('notes') || []).concat([note])); 
 			return cb();
 		    };
 		};
@@ -173,7 +173,7 @@ describe('proxy', function () {
 		    if (err) {
 			assert.ifError(err);
 		    }
-		    assert.deepEqual(core.get('notes'), ['b', 'a', 'b']);
+		    assert.deepEqual(dup.core.get('notes'), ['b', 'a', 'b']);
 		    return done();
 		});
 	    });
