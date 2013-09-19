@@ -23,6 +23,7 @@ describe('proxy', function () {
 
     var redis
     , cbHandler
+    , monitor
     , newModel = function (proto, redisInstance) {
 	redisInstance = redisInstance || redis;
 	return new Model(redisInstance, proto);
@@ -37,6 +38,9 @@ describe('proxy', function () {
     before(function(done) {
 	redis = redisClient();
 	cbHandler = new CallbackHandler(randomId(), redisClient(), redis);
+
+	monitor = redisClient();
+	monitor.monitor(function (err, res) {});
 	return done();
     });
 
@@ -211,6 +215,36 @@ describe('proxy', function () {
 	    _.delay(otherMethod, 100, finished);
 	    _.delay(method, 50, finished);
 	    _.delay(otherMethod, 50, finished);
+	}); 
+
+	it('should not attempt to lock unnecessarily ', function (done) {
+	    var redis = redisClient()
+	    , model = newModel({
+		method: function (cb) {
+		    return cb();
+		}
+	    }, redis)
+	    , proxy = newProxy(model, redis)
+	    , instance = proxy.create({})
+	    , setnxCount = 0
+	    , watchSetnx = function (time, args) {
+		if (args[0].toUpperCase() === 'SETNX') {
+		    setnxCount = setnxCount + 1;
+		}
+	    }
+	    , finished = _.after(3, function () {
+		assert.equal(setnxCount, 1, 'bad number of lock attempts: ' + setnxCount);
+		return done();
+	    })
+	    , method = _.bind(instance.method, instance)
+	    ;
+	    monitor.on("monitor", watchSetnx);
+	    instance.method(finished);
+	    instance.method(finished);
+	    instance.method(finished);
+	    
+	    
+
 	}); 
 
     });
