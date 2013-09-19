@@ -206,14 +206,19 @@ _.extend(Core.prototype, {
 	    cb = val;
 	}
 	_.extend(_this._attrs, attrs);
-	_redis.hmset(channel, attrs, function (err) {
+	var hmsetArgs = [channel];
+	_.each(attrs, function (val, key) {
+	    hmsetArgs.push(key);
+	    hmsetArgs.push(JSON.stringify(val));
+	});
+	hmsetArgs.push(function (err) {
 	    if (err) {
 		if (cb) {
 		    cb(err);
 		}
 	    }
 	    else {
-		_this._redis.publish(_this.channel, JSON.stringify({
+		_redis.publish(_this.channel, JSON.stringify({
 		    subject: 'set'
 		    , body: attrs
 		}));
@@ -222,6 +227,7 @@ _.extend(Core.prototype, {
 		}
 	    }
 	});
+	_redis.hmset.apply(_redis, hmsetArgs);
     }
     , get: function (key) {
 	return this._attrs[key];
@@ -279,6 +285,9 @@ _.extend(Core.prototype, {
 	    }
 	    else {
 		if (attrs && typeof attrs === 'object') {
+		    _.each(attrs, function (val, key) {
+			attrs[key] = JSON.parse(val);
+		    });		    
 		    _this._attrs = attrs;
 		    return cb(null)
 		}
