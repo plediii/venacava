@@ -1,6 +1,7 @@
 
 var venacava = require('./venacava.js')
 , Core = venacava.Core
+, CallbackHandler = venacava.CallbackHandler
 , Model = venacava.Model
 , Proxy = venacava.Proxy
 , redis = require('redis')
@@ -20,17 +21,19 @@ var randomId = function () {
 describe('proxy', function () {
 
     var redis
+    , cbHandler
     , newModel = function (proto) {
 	return new Model(redis, proto);
     }
     , newProxy = function (model) {
-	return new Proxy(redis, model);
+	return new Proxy(redis, cbHandler, model);
     }
     ;
 
 
     before(function(done) {
 	redis = redisClient();
+	cbHandler = new CallbackHandler(randomId(), redisClient(), redis);
 	return done();
     });
 
