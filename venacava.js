@@ -320,45 +320,146 @@ _.extend(Model.prototype, {
     }
 });
 
-var Proxy = exports.Proxy = function (redis, model) {
+var ProxyQueue = function (channel, redis, cbHandler, model) {
     var _this = this
     ;
+    _this.channel = channel;
     _this.redis = redis;
+    _this.cbHandler = cbHandler;
+    _this.model = model;
+    _this.queue = 'queue:' + channel;
+    _this.lock = 'lock:' + channel;
+    _this.defaultCb = function (err) {
+	if (err) {
+	    log('uncaught error when invoking ', channel, err);
+	}
+    }
+    _this.instance = null;
+};
+
+_.extend(ProxyQueue.prototype, {
+    enqueue: function (method, args) {
+	var _this = this
+	;
+	args = _.clone(args);
+
+	var argCb = void 0
+	;
+	if (_.isFunction(_.last(args))) {
+	    argCb = args.pop();
+	}
+	else {
+	    argCb = _this.defaultCb;
+	}
+
+	args.push(_this.cbHandler.handleCallback(argCb));
+
+	return _this.redis.multi() 
+	    .get(_this.lock)
+	    .rpush(_this.queue, JSON.stringify([method, args]))
+	    .exec(function (err, replies) {
+		if (err) {
+		    return log('error enquing proxy task to channel ', _this.channel, err);
+		}
+		else {
+		    var locked = replies[0];
+		    if (!locked) {
+			return _this.process();
+		    }
+		}
+	    });
+    }
+    , process: function () {
+	var _this = this
+	, queue = _this.queue
+	;
+	_this.redis.setnx(_this.lock, 1, function (err, locked) {
+	    if (err) {
+		log('error setting lock for ', _this.lock, err);
+		return;
+	    }
+	    else if (locked !== 0) {
+		_this.instance = _this.model.get(_this.channel);
+		_this.instance.core.fetch(function (err) {
+		    if (err) {
+			log('error fetching model for ', _this.channel, err);
+		    }
+		    else {
+			_this.execute();
+		    }
+		});
+	    }
+	});
+    }
+    , execute: function () {
+	var _this = this
+	, queue = _this.queue
+	;
+	return _this.redis.multi()
+	    .lpop(queue)
+	    .llen(queue)
+	    .exec(function (err, replies) {
+		if (err) {
+		    log('error executing task from ', queue, err);
+		    return _this.release();
+		}
+
+		(function (JSONTask, llen) {
+		    var task = JSON.parse(JSONTask)
+		    , method = task[0]
+		    , args = task[1]
+		    , cbHandle = args.pop()
+		    , instance = _this.instance
+		    , next = llen > 0 ? _this.execute : _this.release
+		    ;
+		    args.push(function () {
+			_this.cbHandler.executeCallback(cbHandle, _.toArray(arguments));
+			next.call(_this);
+		    });
+		    instance[method].apply(instance, args);
+		}).apply(_this, replies)
+	    });
+    }
+    , release: function () {
+	var _this = this
+	, queue = _this.queue
+	, lock = _this.lock
+	;
+	_this.instance = null;
+	return _this.redis.multi()
+	    .del(lock)
+	    .llen(queue)
+	    .exec(function (err, replies) {
+		if (err) {
+		    log('error releasing queue ', queue, err);
+		    return;
+		}
+		else {
+		    var llen = replies[1];
+		    if (llen > 0) {
+			return _this.process();
+		    }
+		    else {
+			return;
+		    }
+		}
+	    });
+    }
+});
+
+var Proxy = exports.Proxy = function (redis, cbHandler, model) {
+    var _this = this
+    ;
+    _this.cbHandler = cbHandler;
     _this.model = model;
     var Klass = _this.Klass = function (channel) {
 	this.channel = channel;
+	this.queue = new ProxyQueue(channel, redis, cbHandler, model);
     };
 
     _.each(model.proto, function (func, name) {
 	Klass.prototype[name] = function () {
-	    var channel = this.channel
-	    , args = _.toArray(arguments)
-	    , instance = _this.model.get(channel)
-	    ;
-	    instance.core.fetch(function (err) {
-		if (err) {
-		    log('error fetching core for channel ', channel, err);
-		    return;
-		}
-		else {
-		    
-		    var argCb = void 0
-		    ;
-		    if (_.last(args) === 'function') {
-			argCb = args.pop();
-		    }
-		    args.push(function (err) {
-			if (err && !argCb) {
-			    log('uncaught error when invoking ', channel, '.', name, err);
-			}
-			else if (argCb) {
-			    return argCb.apply(null, arguments);
-			}
-		    });
-
-		    return func.apply(instance, args);
-		}
-	    });
+	    this.queue.enqueue(name, _.toArray(arguments));
 	};
     });
 };
