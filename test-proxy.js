@@ -7,6 +7,7 @@ var venacava = require('./venacava.js')
 , redis = require('redis')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter
+, _ = require('underscore')
 ;
 
 var redisClient = function () {
@@ -22,11 +23,13 @@ describe('proxy', function () {
 
     var redis
     , cbHandler
-    , newModel = function (proto) {
-	return new Model(redis, proto);
+    , newModel = function (proto, redisInstance) {
+	redisInstance = redisInstance || redis;
+	return new Model(redisInstance, proto);
     }
-    , newProxy = function (model) {
-	return new Proxy(redis, cbHandler, model);
+    , newProxy = function (model, redisInstance) {
+	redisInstance = redisInstance || redis;
+	return new Proxy(redisInstance, cbHandler, model);
     }
     ;
 
@@ -142,44 +145,35 @@ describe('proxy', function () {
 		.method(done);
 	});
 
-	it('should execute target methods in the order of call', function (done) {
-	    var addNote = function (note, delay) {
-
-		var add = function (core, cb) {
-		    return function () {
-			core.set('notes', (core.get('notes') || []).concat([note])); 
+	it('should execute target methods synchronously ', function (done) {
+	    var model = newModel({
+		method: function (cb) {
+		    var _this = this
+		    , count = _this.core.get('count') || 0
+		    ;
+		    return _.delay(function () {
+			_this.core.set('count', 1 + count);
 			return cb();
-		    };
-		};
-
-		return function (cb) {
-		    if (delay) {
-			setTimeout(add(this.core, cb), delay);
-		    }
-		    else {
-			add(this.core, cb)();
-		    }
+		    }, 500);
 		}
-	    }
-	    , model = newModel({
-		methodA: addNote('a', 1000)
-		, methodB: addNote('b')
 	    })
 	    , proxy = newProxy(model)
 	    , instance = proxy.create({})
-	    ;
-	    instance.methodB();
-	    instance.methodA();
-	    instance.methodB(function () {
+	    , finished = _.after(3, function () {
 		var dup = model.get(instance.channel);
 		return dup.core.fetch(function (err) {
 		    if (err) {
 			assert.ifError(err);
 		    }
-		    assert.deepEqual(dup.core.get('notes'), ['b', 'a', 'b']);
+		    assert.equal(dup.core.get('count'), 3);
 		    return done();
-		});
-	    });
+		});		
+	    })
+	    , method = _.bind(instance.method, instance);
+	    ;
+	    _.delay(method, 1000, finished);
+	    _.delay(method, 500, finished);
+	    _.delay(method, 100, finished);
 	}); 
 
     });
