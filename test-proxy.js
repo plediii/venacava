@@ -145,7 +145,7 @@ describe('proxy', function () {
 		.method(done);
 	});
 
-	it('should execute target methods synchronously ', function (done) {
+	it('should not execute methods concurrently ', function (done) {
 	    var model = newModel({
 		method: function (cb) {
 		    var _this = this
@@ -154,7 +154,7 @@ describe('proxy', function () {
 		    return _.delay(function () {
 			_this.core.set('count', 1 + count);
 			return cb();
-		    }, 500);
+		    }, 250);
 		}
 	    })
 	    , proxy = newProxy(model)
@@ -174,6 +174,43 @@ describe('proxy', function () {
 	    _.delay(method, 1000, finished);
 	    _.delay(method, 500, finished);
 	    _.delay(method, 100, finished);
+	}); 
+
+	it('should not execute from different redis contexts concurrently ', function (done) {
+	    var model = newModel({
+		method: function (cb) {
+		    var _this = this
+		    , count = _this.core.get('count') || 0
+		    ;
+		    return _.delay(function () {
+			_this.core.set('count', 1 + count);
+			return cb();
+		    }, 250);
+		}
+	    })
+	    , proxy = newProxy(model)
+	    , instance = proxy.create({})
+	    , otherRedis = redisClient()
+	    , otherModel = newModel(model.proto, otherRedis)
+	    , otherProxy = newProxy(otherModel, otherRedis)
+	    , otherInstance = otherProxy.get(instance.channel)
+	    , finished = _.after(4, function () {
+		var dup = model.get(instance.channel);
+		return dup.core.fetch(function (err) {
+		    if (err) {
+			assert.ifError(err);
+		    }
+		    assert.equal(dup.core.get('count'), 4);
+		    return done();
+		});		
+	    })
+	    , method = _.bind(instance.method, instance)
+	    , otherMethod = _.bind(otherInstance.method, otherInstance)
+	    ;
+	    _.delay(method, 200, finished);
+	    _.delay(otherMethod, 100, finished);
+	    _.delay(method, 50, finished);
+	    _.delay(otherMethod, 50, finished);
 	}); 
 
     });
