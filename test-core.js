@@ -65,6 +65,40 @@ describe('core', function () {
 		});
 	    });
 	});
+
+	it('should restore previously set arrays', function (done) {
+	    var core = newCore()
+	    , val = [Math.random()]
+	    ;
+	    core.set('x', val, function (err) {
+		assert.ifError(err);
+		
+		var dup = newCore(core.channel, {x: Math.random()});
+		dup.fetch(function (err) {
+		    assert.ifError(err);
+		    assert.deepEqual(dup.get('x'), val, 'failed to fetch array');
+		    done();
+		});
+	    });
+	});
+
+	it('should restore previously set object', function (done) {
+	    var core = newCore()
+	    , val = {y: Math.random()}
+	    ;
+	    core.set('x', val, function (err) {
+		assert.ifError(err);
+		
+		var dup = newCore(core.channel, {x: Math.random()});
+		dup.fetch(function (err) {
+		    assert.ifError(err);
+		    assert.deepEqual(dup.get('x'), val, 'failed to fetch object');
+		    done();
+		});
+	    });
+
+	});
+
     });
 
     describe('#get', function () {
