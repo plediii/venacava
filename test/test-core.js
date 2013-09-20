@@ -1,5 +1,5 @@
 
-var Core = require('./venacava.js').Core
+var Core = require('../venacava.js').Core
 , redis = require('redis')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter

@@ -1,5 +1,5 @@
 
-var CallbackHandler = require('./venacava.js').CallbackHandler
+var CallbackHandler = require('../venacava.js').CallbackHandler
 , redis = require('redis')
 , assert = require('assert')
 ;

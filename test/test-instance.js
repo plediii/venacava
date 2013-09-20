@@ -1,5 +1,5 @@
 
-var venacava = require('./venacava.js')
+var venacava = require('../venacava.js')
 , Core = venacava.Core
 , Model = venacava.Model
 , redis = require('redis')
