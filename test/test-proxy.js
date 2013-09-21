@@ -175,9 +175,9 @@ describe('proxy', function () {
 	    })
 	    , method = _.bind(instance.method, instance);
 	    ;
-	    _.delay(method, 1000, finished);
-	    _.delay(method, 500, finished);
+	    _.delay(method, 400, finished);
 	    _.delay(method, 100, finished);
+	    _.delay(method, 50, finished);
 	}); 
 
 	it('should not execute from different redis contexts concurrently ', function (done) {
