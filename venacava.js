@@ -333,126 +333,115 @@ var ProxyQueue = function (channel, redis, cbHandler, model) {
     var _this = this
     ;
     _this.channel = channel;
-    _this.redis = redis;
-    _this.cbHandler = cbHandler;
-    _this.model = model;
-    _this.queue = 'queue:' + channel;
-    _this.lock = 'lock:' + channel;
-    _this.defaultCb = function (err) {
-	if (err) {
-	    log('uncaught error when invoking ', channel, err);
-	}
-    }
-    _this.instance = null;
+    _this._redis = redis;
+    _this._cbHandler = cbHandler;
+    _this._model = model;
+    _this._local = [];
+    _this._instance = null;
+    _this._lock = 'lock:' + channel;
+    _this._queue = 'queue:' + channel;
 };
 
 _.extend(ProxyQueue.prototype, {
     enqueue: function (method, args) {
 	var _this = this
 	;
-	args = _.clone(args);
 
-	var argCb = void 0
-	;
-	if (_.isFunction(_.last(args))) {
-	    argCb = args.pop();
+	_this._local.push([method, args]);
+	if (_this._instance) {
+	    return _this;
 	}
-	else {
-	    argCb = _this.defaultCb;
-	}
-
-	args.push(_this.cbHandler.handleCallback(argCb));
-
-	return _this.redis.multi() 
-	    .get(_this.lock)
-	    .rpush(_this.queue, JSON.stringify([method, args]))
-	    .exec(function (err, replies) {
-		if (err) {
-		    return log('error enquing proxy task to channel ', _this.channel, err);
-		}
-		else {
-		    var locked = replies[0];
-		    if (!locked) {
-			return _this.process();
-		    }
-		}
-	    });
+	_this._instance = _this._model.get(_this.channel);
+	_this.lock();
     }
-    , process: function () {
-	var _this = this
-	, queue = _this.queue
-	;
-	_this.redis.setnx(_this.lock, 1, function (err, locked) {
+    , lock: function () {
+	var _this = this;
+	_this._redis.setnx(_this._lock, 1, function (err, locked) {
 	    if (err) {
 		log('error setting lock for ', _this.lock, err);
-		return;
 	    }
-	    else if (locked !== 0) {
-		_this.instance = _this.model.get(_this.channel);
-		_this.instance.core.fetch(function (err) {
-		    if (err) {
-			log('error fetching model for ', _this.channel, err);
-		    }
-		    else {
-			_this.execute();
-		    }
-		});
+	    else {
+		if (locked === 1) {
+		    _this.acquired();
+		}
+		else {
+		    _this._redis.multi()
+			.rpush(_this._queue, _this._cbHandler.handleCallback(_this.acquired, _this))
+			.setnx(_this._lock, 1)
+			.exec(function (err, replies) {
+			    if (err) {
+				log('error enqueuing lock', _this._queue, err);
+			    }
+			    else {
+				var locked = replies[1];
+				if (locked === 1) {
+				    return _this.nextLock();
+				}
+			    }
+			});
+		}
 	    }
 	});
     }
-    , execute: function () {
-	var _this = this
-	, queue = _this.queue
-	;
-	return _this.redis.multi()
-	    .lpop(queue)
-	    .llen(queue)
-	    .exec(function (err, replies) {
+    , nextLock: function () {
+	var _this = this;
+	_this._redis.lpop(_this._queue, function (err, nextHandle) {
+	    if (err || !nextHandle) {
+		_this._redis.del(_this._lock);
 		if (err) {
-		    log('error executing task from ', queue, err);
-		    return _this.release();
+		    log('error popping next handle', _this._queue, err);
 		}
-
-		(function (JSONTask, llen) {
-		    var task = JSON.parse(JSONTask)
-		    , method = task[0]
-		    , args = task[1]
-		    , cbHandle = args.pop()
-		    , instance = _this.instance
-		    , next = llen > 0 ? _this.execute : _this.release
-		    ;
-		    args.push(function () {
-			_this.cbHandler.executeCallback(cbHandle, _.toArray(arguments));
-			next.call(_this);
-		    });
-		    instance[method].apply(instance, args);
-		}).apply(_this, replies)
-	    });
+	    }
+	    else {
+		_this._cbHandler.executeCallback(nextHandle);
+	    }
+	});
     }
-    , release: function () {
+    , acquired: function () {
+	var _this = this;
+	_this._instance.core.fetch(function (err) {
+	    if (err) {
+		log('error fetching core ', _this._instance.core.channel, err);
+		return;
+	    }
+	    else {
+		_this.process();
+	    }	    
+	});
+    }
+    , process: function () {
 	var _this = this
-	, queue = _this.queue
-	, lock = _this.lock
+	, local = _this._local
 	;
-	_this.instance = null;
-	return _this.redis.multi()
-	    .del(lock)
-	    .llen(queue)
-	    .exec(function (err, replies) {
-		if (err) {
-		    log('error releasing queue ', queue, err);
-		    return;
-		}
-		else {
-		    var llen = replies[1];
-		    if (llen > 0) {
-			return _this.process();
+	if (local.length === 0) {
+	    _this.instance = null;
+	    return _this.nextLock();
+	}
+	else {
+	    var task = _.first(local)
+	    , method = task[0]
+	    , args = task[1]
+	    , argCb = _.last(args)
+	    ;
+	    _this._local = _.rest(local);
+	    
+	    if (_.isFunction(argCb)) {
+		args.pop();
+	    }
+	    else {
+		argCb = function (err) {
+		    if (err) {
+			log('uncaught error ', _this.queue, err);
 		    }
-		    else {
-			return;
-		    }
 		}
+	    }
+	    args.push(function () {
+		argCb.apply(null, arguments);
+		_this.process();
 	    });
+
+	    _this._instance[method].apply(_this._instance, args);
+	}
     }
 });
 
@@ -479,8 +468,7 @@ _.extend(Proxy.prototype, {
 	, model = _this.model
 	, instance = model.create(attrs)
 	;
-	
-	return new _this.Klass(instance.core.channel);
+	return _this.get(instance.core.channel);
     }
     , get: function (channel) {
 	var _this = this;
