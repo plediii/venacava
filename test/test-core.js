@@ -279,9 +279,98 @@ describe('core', function () {
 
     });
 
+    describe('#exists', function () {
+	it('should exist', function () {
+	    assert(Core.exists, 'Core.exists does not exist.');
+	});
+
+	it('should return false for non-existent channels', function (done) {
+	    var channel = newCore().channel;
+	    Core.exists(channel, function (err, exists) {
+		assert.ifError(err);
+		assert(!exists, 'claimed existence.');
+		done();
+	    });
+	});
+
+	it('should return true for existing channels', function (done) {
+	    var core = newCore(channel);
+	    core.set('x', 1);
+	    Core.exists(core.channel, function (err, exists) {
+		assert.ifError(err);
+		assert(exists, 'claimed non-existence.');
+		done();
+	    });
+	});
+
+	describe(':instance', function () {
+
+	    it('should exist', function () {
+		assert(newCore().exists);
+	    });
+	    
+	    it('should return false for non-extistent channels', function (done) {
+		newCore().exists(function (err, exists) {
+		    assert.ifError(err);
+		    assert(!exists, 'claimed existence');
+		    done();
+		});
+	    });
+
+	    it('should return true  for existing channels', function (done) {
+		var core = newCore();
+		core.set('x', 1);
+		newCore(core.channel).exists(function (err, exists) {
+		    assert.ifError(err);
+		    assert(!exists, 'claimed non-existence');
+		    done();
+		});
+	    });
+
+	});
+    });
+
+    describe('#erase', function () {
+	
+	it('should exist', function () {
+	    assert(Core.erase)
+	});
+
+	it('should erase existing cores', function (done) {
+	    var core = newCore();
+	    core.set('x', 1);
+	    Core.erase(core.channel);
+	    Core.exists(core.channel, function (err, exists) {
+		assert.ifError(err);
+		assert(!exists, 'core was not erased.');
+		done();
+	    })
+	});
+
+	describe(':instance', function () {
+	    
+	    it('should exist', function () {
+		assert(newCore().erase);
+	    });
+
+	    it('should erase the core', function (done) {
+		var core = newCore();
+		core.set('x', 1);
+		core.erase();
+		Core.exists(core.channel, function (err, exists) {
+		    assert.ifError(err);
+		    assert(!exists, 'core was not erased.');
+		    done();
+		});
+	    });
+
+	});
+
+    });
+
     describe('redis subscription', function () {
 
-	it('should send set updates', function (done) {
+	it('should send "set" updates', function (done) {
 	    var subRedis = redisClient()
 	    , core = newCore()
 	    , attrs = {x: 1}
@@ -298,7 +387,7 @@ describe('core', function () {
 
 	    subRedis.subscribe(core.channel); 
 	    subRedis.on('subscribe', function (channel, count) {
-		assert.equal(channel, core.channel, 'suscribed to unknown channel.');
+		assert.equal(channel, core.channel, 'subscribed to unknown channel.');
 		core.set(attrs);
 	    });
 	});
@@ -320,8 +409,29 @@ describe('core', function () {
 
 	    subRedis.subscribe(core.channel);
 	    subRedis.on('subscribe', function (channel, count) {
-		assert.equal(channel, core.channel, 'suscribed to unknown channel.');
+		assert.equal(channel, core.channel, 'subscribed to unknown channel.');
 		core.unset('x');
+	    });
+	});
+
+
+	it('should send "erased" updates', function (done) {
+	    var subRedis = redisClient()
+	    , core = newCore()
+	    ;
+	    core.set('x', 1);
+	    subRedis.on('message', function (channel, msg) {
+		var obj = JSON.parse(msg);
+		assert.equal(channel, core.channel, 'received message on unknown channel.');
+		assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+		assert.equal(obj.subject, 'erased', 'message subject was not unset.');
+		done();
+	    });
+
+	    subRedis.subscribe(core.channel);
+	    subRedis.on('subscribe', function (channel, count) {
+		assert.equal(channel, core.channel, 'subscribed to unknown channel.');
+		core.erase();
 	    });
 	});
 
