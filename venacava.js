@@ -414,7 +414,7 @@ _.extend(ProxyQueue.prototype, {
 	, local = _this._local
 	;
 	if (local.length === 0) {
-	    _this.instance = null;
+	    _this._instance = null;
 	    return _this.nextLock();
 	}
 	else {
