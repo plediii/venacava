@@ -180,6 +180,42 @@ describe('proxy', function () {
 	    _.delay(method, 50, finished);
 	}); 
 
+	it('should release the lock after completing tasks', function (done) {
+	    var model = newModel({
+		method: function (cb) {
+		    var _this = this
+		    , count = _this.core.get('count') || 0
+		    ;
+		    return _.delay(function () {
+			_this.core.set('count', 1 + count);
+			return cb();
+		    }, 50);
+		}
+	    })
+	    , proxy = newProxy(model)
+	    , instance = proxy.create({})
+	    , finished = _.after(6, function () {
+		var dup = model.get(instance.channel);
+		return dup.core.fetch(function (err) {
+		    if (err) {
+			assert.ifError(err);
+		    }
+		    assert.equal(dup.core.get('count'), 6);
+		    return done();
+		});		
+	    })
+	    , method = _.bind(instance.method, instance);
+	    ;
+	    method(finished);
+	    method(finished);
+	    method(finished);
+	    _.delay(function () {
+		method(finished);
+		method(finished);
+		method(finished);
+	    }, 400)
+	}); 
+
 	it('should not execute from different redis contexts concurrently ', function (done) {
 	    var model = newModel({
 		method: function (cb) {
@@ -242,10 +278,8 @@ describe('proxy', function () {
 	    instance.method(finished);
 	    instance.method(finished);
 	    instance.method(finished);
-	    
-	    
-
 	}); 
+
 
     });
 });
