@@ -60,6 +60,14 @@ describe('Model', function () {
 		assert.equal(typeof instance.core, 'object', 'new instance core was not an object');
 	    });
 
+	    it('should have a core with the desired channel prefix', function () {
+		var prefix = 'prefix/'
+		, instance = newModel({
+		    prefix: 'prefix/'
+		}).create({});
+		assert(instance.core.channel.indexOf(prefix) === 0);
+	    })
+
 	    it('should have initial values equal to the creation arguments', function () {
 		var attrs = {x: 1}
 		, instance = newModel({}).create(attrs)
