@@ -15,3 +15,4 @@ npm-debug.log
 trash/
 coverage/
 node_modules/
+*~
