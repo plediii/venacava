@@ -2,7 +2,6 @@
 var venacava = require('../venacava.js')
 , MockRedisSub = require('./mockredissub').MockRedisSub
 , RedisEmitter = venacava.RedisEmitter
-, redis = require('redis')
 , assert = require('assert')
 , _ = require('underscore')
 ;
@@ -17,18 +16,13 @@ var randomId = function () {
 
 describe('RedisEmitter', function () {
 
-    var redis
-    ;
-
-    var newRemitter = function (theRedis) {
-	theRedis = theRedis || redis;
+    var newRemitter = function (redis) {
 	return new RedisEmitter(redis);
     };
 
 
 
     before(function(done) {
-	redis = redisClient();
 	return done();
     });
 
