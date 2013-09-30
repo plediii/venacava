@@ -1,6 +1,7 @@
 
 var venacava = require('../venacava.js')
 , MockRedisSub = require('./mockredissub').MockRedisSub
+, MockSocket = require('./mocksocket').MockSocket
 , Relay = venacava.Relay
 , RedisEmitter = venacava.RedisEmitter
 , EventEmitter = require('events').EventEmitter
@@ -16,14 +17,6 @@ var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
 };
 
-var MockSocket = function () {
-    EventEmitter.call(this);
-};
-
-_.extend(MockSocket.prototype, {
-
-}
-, EventEmitter);
 
 var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
