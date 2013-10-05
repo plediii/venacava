@@ -16,3 +16,5 @@ trash/
 coverage/
 node_modules/
 *~
+.*
+\#*
