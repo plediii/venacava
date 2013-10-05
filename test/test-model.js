@@ -30,7 +30,9 @@ describe('Model', function () {
 
 	it('should have the functions from the construction argument', function () {
 	    assert(newModel({
-		method: function () {}
+		methods: {
+		    method: function () {}
+		}
 	    }).methods.method, 'model proto did not have the argument\'s method');
 	});
     });
@@ -50,11 +52,11 @@ describe('Model', function () {
 	    });
 
 	    it('should have a core with the desired channel prefix', function () {
-		var prefix = 'prefix/'
+		var root = 'prefix/'
 		, instance = newModel({
-		    prefix: 'prefix/'
+		    channelRoot: 'prefix/'
 		}).create({});
-		assert.equal(0, instance.core.channel.indexOf(prefix));
+		assert.equal(0, instance.core.channel.indexOf(root));
 	    })
 
 	    it('should have initial values equal to the creation arguments', function () {
@@ -121,7 +123,7 @@ describe('Model', function () {
 			    this.initialized = true;
 			}
 		    }).create({});
-		    assert(instance.initialized, 'create callback called before initialize');
+		    assert(instance.initialized, 'create callback did not invoke initialized on the instance');
 		}); 
 	    });
 	    
