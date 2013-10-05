@@ -8,32 +8,37 @@ var random_string = exports.random_string = function () {
     return crypto.randomBytes(12).toString('hex');
 };
 
-var Model = exports.Model = function (redis, proto) {
+var Model = exports.Model = function (options) {
     var _this = this
-    ;
-    _this._redis = redis;
-    _this.defaults = {};
-    _this.Klass = function (core) {
+    , Klass = function (core) {
 	this.core = core;
-    };
-    _this.proto = proto;
-    _this.defaults = proto.defaults;
+    }
+    ;
 
-    _.extend(_this.Klass.prototype, proto);
+    options = _.defaults({}, options, {
+	methods: {}
+	, initialize: function () {}
+	, defaults: {}
+	, channelRoot: ''
+    });
+    _.extend(Klass.prototype, options.methods);
+    _.extend(_this, options, {
+	Klass: Klass
+    });
 };
 
 _.extend(Model.prototype, {
     create: function (attrs) {
 	var _this = this
 	;
-	attrs = _.defaults(_.clone(attrs), _this.defaults);
-	var instance = _this.get(random_string());
+	attrs = _.defaults({}, attrs, _this.defaults);
+	var instance = _this.get(_this.channelRoot + random_string());
 	instance.core.set(attrs);
-	instance.initialize && instance.initialize();
+	_this.initialize.call(instance);
 	return instance;	
     }
     , get: function (channel) {
 	var _this = this;
-	return new _this.Klass(new Core(channel, _this._redis));	
+	return new _this.Klass(new Core(channel));	
     }
 });
