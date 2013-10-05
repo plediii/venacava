@@ -1,13 +1,9 @@
 
 var Core = require('../venacava.js').Core
-, redis = require('redis')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter
+, redisClient = require('../src/redisClient')
 ;
-
-var redisClient = function () {
-    return redis.createClient();
-};
 
 var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
@@ -25,15 +21,9 @@ describe('core', function () {
 	else if (!channel) {
 	    channel = randomId();
 	}
-	return new Core(channel, redis, attrs);
+	return new Core(channel, attrs);
     }
     ;
-
-
-    before(function(done) {
-	redis = redisClient();
-	return done();
-    });
 
     it('should be constructable', function () {
 	newCore({x: 1});
@@ -322,7 +312,7 @@ describe('core', function () {
 		core.set('x', 1);
 		newCore(core.channel).exists(function (err, exists) {
 		    assert.ifError(err);
-		    assert(!exists, 'claimed non-existence');
+		    assert(exists, 'claimed non-existence');
 		    done();
 		});
 	    });
@@ -370,8 +360,9 @@ describe('core', function () {
 
     describe('redis subscription', function () {
 
+
 	it('should send "set" updates', function (done) {
-	    var subRedis = redisClient()
+	    var subRedis = redisClient.create()
 	    , core = newCore()
 	    , attrs = {x: 1}
 	    ;
@@ -393,7 +384,7 @@ describe('core', function () {
 	});
 
 	it('should send unset updates', function (done) {
-	    var subRedis = redisClient()
+	    var subRedis = redisClient.create()
 	    , core = newCore()
 	    , attrs = {x: 1}
 	    ;
@@ -416,7 +407,7 @@ describe('core', function () {
 
 
 	it('should send "erased" updates', function (done) {
-	    var subRedis = redisClient()
+	    var subRedis = redisClient.create()
 	    , core = newCore()
 	    ;
 	    core.set('x', 1);

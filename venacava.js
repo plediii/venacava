@@ -11,11 +11,6 @@ var log = console.log;
 
 exports.CallbackHandler = callbackHandler.CallbackHandler;
 
-var redisClient = function (args) {
-    return redis.createClient.apply(redis, redisArgs);
-};
-
-
 exports.Core = core.Core;
 
 exports.Model = model.Model;

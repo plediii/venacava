@@ -1,14 +1,23 @@
 
 var _ = require('underscore')
-, EventEmitter = require('events').EventEmitter
-, crypto = require('crypto')
 ;
 
-var Core = exports.Core = function (channel, redis, attrs) {
+var log = console.log;
+
+var Core = exports.Core = function (channel, attrs) {
     this.channel = channel;
     this._attrs = attrs || {};
-    this._redis = redis;
+    this._redis = Core._redis;
 };
+
+Core._redis = require(__dirname + '/redisClient').create();
+
+_.each(['exists', 'erase'], function (funcName) {
+    Core[funcName] = function (channel) {
+	var core = new Core(channel);
+	return core[funcName].apply(core, _.toArray(arguments).slice(1));
+    }
+});
 
 _.extend(Core.prototype, {
     set: function (key, val, cb) {
@@ -115,4 +124,35 @@ _.extend(Core.prototype, {
 	    }
 	}); 
     }
+    , exists: function (cb) {
+	var _this = this
+	;
+	_this._redis.exists(_this.channel, cb);
+    }
+    , erase: function (cb) {
+	var _this = this
+	, channel = _this.channel
+	;
+	cb = cb || logError('error erasing ' + channel);
+	_this._redis.del(channel, function (err) {
+	    if (err) {
+		return cb(err);
+	    }
+	    else {
+		_this._redis.publish(channel, JSON.stringify({
+		    subject: 'erased'
+		}));
+		return cb(null);
+	    }
+	});
+
+    }
 });
+
+var logError = function (message) {
+    return function (err) {
+	if (err) {
+	    log(message, err);
+	}
+    };
+}
