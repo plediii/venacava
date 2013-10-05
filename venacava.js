@@ -337,11 +337,12 @@ _.extend(ProxyQueue.prototype, {
     }
 });
 
-var Proxy = exports.Proxy = function (redis, cbHandler, model) {
+var Proxy = exports.Proxy = function (redis, cbHandler, options) {
     var _this = this
+    , model = _this.model = options.model;
     ;
     _this.cbHandler = cbHandler;
-    _this.model = model;
+    
     var Klass = _this.Klass = function (channel) {
 	this.channel = channel;
 	this.queue = new ProxyQueue(channel, redis, cbHandler, model);
