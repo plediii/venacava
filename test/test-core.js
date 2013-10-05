@@ -294,7 +294,7 @@ describe('core', function () {
 	});
 
 	it('should return true for existing channels', function (done) {
-	    var core = newCore(channel);
+	    var core = newCore();
 	    core.set('x', 1);
 	    Core.exists(core.channel, function (err, exists) {
 		assert.ifError(err);
