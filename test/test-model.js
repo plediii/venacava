@@ -2,14 +2,9 @@
 var venacava = require('../venacava.js')
 , Core = venacava.Core
 , Model = venacava.Model
-, redis = require('redis')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter
 ;
-
-var redisClient = function () {
-    return redis.createClient();
-};
 
 var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
@@ -19,30 +14,24 @@ var randomId = function () {
 describe('Model', function () {
 
     var redis
-    , newModel = function (proto) {
-	return new Model(redis, proto);
+    , newModel = function (options) {
+	return new Model(options);
     }
     ;
-
-
-    before(function(done) {
-	redis = redisClient();
-	return done();
-    });
 
     it('should be constructable', function () {
 	assert(newModel({}), 'unable to create a new model');
     });
 
-    describe('#proto', function () {
+    describe('#methods', function () {
 	it('should exist', function () {
-	    assert(newModel({}).proto, 'model did not have a proto property.');
+	    assert(newModel({}).methods, 'model did not have a proto property.');
 	});
 
 	it('should have the functions from the construction argument', function () {
 	    assert(newModel({
 		method: function () {}
-	    }).proto.method, 'model proto did not have the argument\'s');
+	    }).methods.method, 'model proto did not have the argument\'s method');
 	});
     });
 
@@ -65,7 +54,7 @@ describe('Model', function () {
 		, instance = newModel({
 		    prefix: 'prefix/'
 		}).create({});
-		assert(instance.core.channel.indexOf(prefix) === 0);
+		assert.equal(0, instance.core.channel.indexOf(prefix));
 	    })
 
 	    it('should have initial values equal to the creation arguments', function () {
@@ -139,9 +128,11 @@ describe('Model', function () {
 	    describe(':methods', function () {
 		it('should exist on created instances', function () {
 		    var instance = newModel({
-			method: function (arg) {
-			    assert(this.core, 'method was not called with a context containing the core.');
-			    assert.equal(arg, 1, 'method was not called with arguments');
+			methods: {
+			    method: function (arg) {
+				assert(this.core, 'method was not called with a context containing the core.');
+				assert.equal(arg, 1, 'method was not called with arguments');
+			    }
 			}
 		    }).create({});
 		    assert(instance.method, 'instance was not created with the defined method'); 
@@ -211,9 +202,11 @@ describe('Model', function () {
     describe(':methods', function () {
 	it('should exist on gotten instances', function () {
 	    var model = newModel({
-		method: function (arg) {
-		    assert(this.core, 'method was not called with a context containing the core.');
-		    assert.equal(arg, 1, 'method was not called with arguments');
+		methods: {
+		    method: function (arg) {
+			assert(this.core, 'method was not called with a context containing the core.');
+			assert.equal(arg, 1, 'method was not called with arguments');
+		    }
 		}
 	    });
 
