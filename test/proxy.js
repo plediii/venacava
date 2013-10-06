@@ -1,18 +1,14 @@
 
 var venacava = require('../venacava.js')
+, redisClient = venacava.redisClient
 , Core = venacava.Core
 , CallbackHandler = venacava.CallbackHandler
 , Model = venacava.Model
 , Proxy = venacava.Proxy
-, redis = require('redis')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter
 , _ = require('underscore')
 ;
-
-var redisClient = function () {
-    return redis.createClient();
-};
 
 var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
@@ -21,25 +17,20 @@ var randomId = function () {
 
 describe('proxy', function () {
 
-    var redis
-    , cbHandler
+    var cbHandler = new CallbackHandler(randomId(), redisClient.create(), Core._redis)
     , monitor
     , newModel = function (proto, redisInstance) {
-	redisInstance = redisInstance || redis;
-	return new Model(redisInstance, proto);
+	var model = new Model(proto);
+	return model;
     }
-    , newProxy = function (options, redisInstance) {
-	redisInstance = redisInstance || redis;
-	return new Proxy(redisInstance, cbHandler, options);
+    , newProxy = function (options) {
+	return new Proxy(options);
     }
     ;
 
 
     before(function(done) {
-	redis = redisClient();
-	cbHandler = new CallbackHandler(randomId(), redisClient(), redis);
-
-	monitor = redisClient();
+	monitor = redisClient.create();
 	monitor.monitor(function (err, res) {});
 	return done();
     });
@@ -98,9 +89,10 @@ describe('proxy', function () {
 
 	it('should exist', function () {
 	    var proxy = newProxy({
-		model : newModel({
+		model: newModel({})
+		, methods: {
 		    method: function () {}
-		})
+		}
 	    })
 	    , instance = proxy.get(randomId())
 	    ;
@@ -109,9 +101,10 @@ describe('proxy', function () {
 
 	it('should be invokable', function (done) {
 	    var proxy = newProxy({
-		model: newModel({
+		model: newModel({})
+		, methods: {
 		    method: function (cb) { return cb(); }
-		})
+		}
 	    })
 	    , instance = proxy.create({})
 	    ;
@@ -120,12 +113,13 @@ describe('proxy', function () {
 
 	it('should received the invocation arguments', function (done) {
 	    var proxy = newProxy({
-		model: newModel({
+		model: newModel({})
+		, methods: {
 		    method: function (x, cb) {
 			assert.equal(x, 1, 'argument was not transmitted to method');
 			return cb();
 		    }
-		})
+		}
 	    })
 	    , instance = proxy.create({})
 	    ;
@@ -134,11 +128,12 @@ describe('proxy', function () {
 
 	it('should return arguments through callback', function (done) {
 	    var proxy = newProxy({
-		model: newModel({
+		model: newModel({})
+		, methods: {
 		    method: function (cb) {
 			return cb(null, 1);
 		    }
-		})
+		}
 	    })
 	    , instance = proxy.create({})
 	    ;
@@ -150,12 +145,13 @@ describe('proxy', function () {
 
 	it('should execute target methods with a fetched core', function (done) {
 	    var proxy = newProxy({
-		model: newModel({
+		model: newModel({})
+		, methods: {
 		    method: function (cb) {
 			assert(this.core.get('x'), 1, 'core was not synchronized');
 			return cb()
 		    }
-		})
+		}
 	    })
 	    ;
 	    
@@ -164,18 +160,21 @@ describe('proxy', function () {
 	});
 
 	it('should not execute methods concurrently ', function (done) {
-	    var model = newModel({
-		method: function (cb) {
-		    var _this = this
-		    , count = _this.core.get('count') || 0
-		    ;
-		    return _.delay(function () {
-			_this.core.set('count', 1 + count);
-			return cb();
-		    }, 250);
+	    var model = newModel({})
+	    , proxy = newProxy({
+		model: model
+		, methods: {
+		    method: function (cb) {
+			var _this = this
+			, count = _this.core.get('count') || 0
+			;
+			return _.delay(function () {
+			    _this.core.set('count', 1 + count);
+			    return cb();
+			}, 250);
+		    }
 		}
 	    })
-	    , proxy = newProxy({model: model})
 	    , instance = proxy.create({})
 	    , finished = _.after(3, function () {
 		var dup = model.get(instance.channel);
@@ -195,18 +194,21 @@ describe('proxy', function () {
 	}); 
 
 	it('should release the lock after completing tasks', function (done) {
-	    var model = newModel({
-		method: function (cb) {
-		    var _this = this
-		    , count = _this.core.get('count') || 0
-		    ;
-		    return _.delay(function () {
-			_this.core.set('count', 1 + count);
-			return cb();
-		    }, 50);
+	    var model = newModel({})
+	    , proxy = newProxy({
+		model: model
+		, methods: {
+		    method: function (cb) {
+			var _this = this
+			, count = _this.core.get('count') || 0
+			;
+			return _.delay(function () {
+			    _this.core.set('count', 1 + count);
+			    return cb();
+			}, 50);
+		    }
 		}
 	    })
-	    , proxy = newProxy({model: model})
 	    , instance = proxy.create({})
 	    , finished = _.after(6, function () {
 		var dup = model.get(instance.channel);
@@ -231,22 +233,27 @@ describe('proxy', function () {
 	}); 
 
 	it('should not execute from different redis contexts concurrently ', function (done) {
-	    var model = newModel({
-		method: function (cb) {
-		    var _this = this
-		    , count = _this.core.get('count') || 0
-		    ;
-		    return _.delay(function () {
-			_this.core.set('count', 1 + count);
-			return cb();
-		    }, 250);
+	    var model = newModel({})
+	    , proxy = newProxy({
+		model: model
+		, methods: {
+		    method: function (cb) {
+			var _this = this
+			, count = _this.core.get('count') || 0
+			;
+			return _.delay(function () {
+			    _this.core.set('count', 1 + count);
+			    return cb();
+			}, 250);
+		    }
 		}
 	    })
-	    , proxy = newProxy({model: model})
 	    , instance = proxy.create({})
-	    , otherRedis = redisClient()
+	    , otherRedis = redisClient.create()
 	    , otherModel = newModel(model.proto, otherRedis)
-	    , otherProxy = newProxy({model: otherModel}, otherRedis)
+	    , otherProxy = newProxy({
+		model: otherModel
+	    })
 	    , otherInstance = otherProxy.get(instance.channel)
 	    , finished = _.after(4, function () {
 		var dup = model.get(instance.channel);
@@ -267,14 +274,11 @@ describe('proxy', function () {
 	    _.delay(otherMethod, 50, finished);
 	}); 
 
-	it('should not attempt to lock unnecessarily ', function (done) {
-	    var redis = redisClient()
-	    , model = newModel({
-		method: function (cb) {
-		    return cb();
-		}
-	    }, redis)
-	    , proxy = newProxy({model: model}, redis)
+	it('should not call redis to lock a locked proxy ', function (done) {
+	    var model = newModel({})
+	    , proxy = newProxy({
+		    model: model
+	    })
 	    , instance = proxy.create({})
 	    , setnxCount = 0
 	    , watchSetnx = function (time, args) {

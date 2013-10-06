@@ -1,5 +1,7 @@
 
 var _ = require('underscore')
+, redisClient = require(__dirname + '/redisClient')
+, callbackHandler = require(__dirname + '/callbackHandler')
 ;
 
 
@@ -119,11 +121,13 @@ _.extend(ProxyQueue.prototype, {
     }
 });
 
-var Proxy = exports.Proxy = function (redis, cbHandler, options) {
+var Proxy = exports.Proxy = function (options) {
     var _this = this
-    , model = _this.model = options.model;
+    , model = _this.model = options.model
+    , cbHandler = _this.cbHandler = options.cbHandler || Proxy.cbHandler
+    , redis = (options && options.redis) || Proxy.redis
     ;
-    _this.cbHandler = cbHandler;
+    
     
     var Klass = _this.Klass = function (channel) {
 	this.channel = channel;
@@ -150,3 +154,6 @@ _.extend(Proxy.prototype, {
 	return new _this.Klass(channel);
     }
 });
+
+Proxy.cbHandler = callbackHandler.default;
+Proxy.redis = redisClient.default;
