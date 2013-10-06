@@ -249,8 +249,9 @@ describe('proxy', function () {
 	    , otherModel = newModel(model.proto)
 	    , otherProxy = newProxy({
 		model: otherModel
+		, methods: proxyMethods
 	    }, { 
-		cbHandler: new CallbackHandler(ranndom, otherRedisSub, otherRedis)
+		cbHandler: new CallbackHandler(randomId(), otherRedisSub, otherRedis)
 	    })
 	    , otherInstance = otherProxy.get(instance.channel, {}, {redis: otherRedis})
 	    , finished = _.after(4, function () {
@@ -327,10 +328,12 @@ describe('proxy', function () {
 
     describe('instance#model', function () {
 	it('should exist on invoked proxy method contexts', function (done) {
-	    var proxy = newProxy({
+	    var channel
+	    , proxy = newProxy({
 		model: newModel({
 		    methods: { 
 			modelMethod: function () {
+			    assert.equal(this.core.channel, channel, 'model did not have a core with the expected channel.');
 			    done();
 			}
 		    }
@@ -339,6 +342,7 @@ describe('proxy', function () {
 		    method: function (cb) {
 			assert(this.model, 'invoked proxy instance did not have a model')
 			assert(this.model.modelMethod, 'invoked proxy instance model did not have the modelMethod');
+			assert.equal(this.core.channel, channel, 'proxy did not have a core with the expected channel.');
 			model.modelMethod();
 			return cb();
 		    }
@@ -347,6 +351,7 @@ describe('proxy', function () {
 	    , instance = proxy.create({})
 	    ;
 	    assert(instance.model);
+	    channel = instance.channel;
 	    instance.method();
 	});
 
