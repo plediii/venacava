@@ -1,12 +1,9 @@
 
-var CallbackHandler = require('../venacava.js').CallbackHandler
-, redis = require('redis')
+var venacava = require('../venacava')
+, redisClient = venacava.redisClient
+, CallbackHandler = require('../venacava.js').CallbackHandler
 , assert = require('assert')
 ;
-
-var redisClient = function () {
-    return redis.createClient();
-};
 
 describe('call back handler', function () {
 
@@ -15,8 +12,8 @@ describe('call back handler', function () {
     ;
 
     before(function(done) {
-	cbHandler = new CallbackHandler('90210', redisClient(), redisClient());
-	otherHandler = new CallbackHandler('90211', redisClient(), redisClient());
+	cbHandler = new CallbackHandler('90210', redisClient.create(), redisClient.create());
+	otherHandler = new CallbackHandler('90211', redisClient.create(), redisClient.create());
 	return done();
     });
 
