@@ -17,6 +17,8 @@ exports.Model = model.Model;
 
 exports.Proxy = proxy.Proxy;
 
+exports.redisClient = require(__dirname + '/src/redisClient');
+
 var printExec = function (err, replies) {
     log('exec err = ', err);
     if (replies) {
