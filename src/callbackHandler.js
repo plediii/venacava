@@ -10,11 +10,11 @@ var callbackChannel = function (zip) {
 };
 
 
-var CallbackHandler = exports.CallbackHandler = function (zip) {
+var CallbackHandler = exports.CallbackHandler = function (zip, redissub, redispub) {
     var _this = this;
     _this.zip = zip;
-    _this.redissub = CallbackHandler._redissub
-    _this.redispub = CallbackHandler._redispub
+    _this.redissub = redissub || CallbackHandler._redissub
+    _this.redispub = redispub || CallbackHandler._redispub
     _this.emitter = new EventEmitter();
     _this.nextHandle = (function () {
 	var next = 0;
