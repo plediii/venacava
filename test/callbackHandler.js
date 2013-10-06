@@ -12,8 +12,10 @@ describe('call back handler', function () {
     ;
 
     before(function(done) {
-	cbHandler = new CallbackHandler('90210', redisClient.create(), redisClient.create());
-	otherHandler = new CallbackHandler('90211', redisClient.create(), redisClient.create());
+	cbHandler = new CallbackHandler('90210');
+	otherHandler = new CallbackHandler('90211');
+	otherHandler.redispub = redisClient.create()
+	otherHandler.redissub = redisClient.create()
 	return done();
     });
 

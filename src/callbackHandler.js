@@ -1,6 +1,8 @@
 
 var _ = require('underscore')
 , EventEmitter = require('events').EventEmitter
+, redisClient = require(__dirname + '/redisClient')
+, random_string = require(__dirname + '/util').random_string
 ;
 
 var callbackChannel = function (zip) {
@@ -8,11 +10,11 @@ var callbackChannel = function (zip) {
 };
 
 
-var CallbackHandler = exports.CallbackHandler = function (zip, redissub, redispub) {
+var CallbackHandler = exports.CallbackHandler = function (zip) {
     var _this = this;
     _this.zip = zip;
-    _this.redissub = redissub;
-    _this.redispub = redispub;
+    _this.redissub = CallbackHandler._redissub
+    _this.redispub = CallbackHandler._redispub
     _this.emitter = new EventEmitter();
     _this.nextHandle = (function () {
 	var next = 0;
@@ -32,6 +34,9 @@ var CallbackHandler = exports.CallbackHandler = function (zip, redissub, redispu
 
     _this.redissub.subscribe(callbackChannel(zip));
 };
+
+CallbackHandler._redissub = redisClient.create();
+CallbackHandler._redispub = redisClient.default;
 
 _.extend(CallbackHandler.prototype, {
     handleCallback: function (func, context) {
@@ -63,3 +68,5 @@ _.extend(CallbackHandler.prototype, {
 	}
     }
 });
+
+exports.default = new CallbackHandler(random_string());
