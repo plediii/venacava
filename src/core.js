@@ -26,7 +26,7 @@ _.extend(Core.prototype, {
 	, _redis = _this._redis
 	, channel = _this.channel
 	;
-	if (typeof key !== 'object') {
+	if (!_.isObject(key)) {
 	    (attrs = {})[key] = val;
 	}
 	else {
