@@ -16,6 +16,7 @@ var Model = exports.Model = function (options) {
 	, initialize: function () {}
 	, defaults: {}
 	, channelRoot: ''
+	, Core: Core
     });
     _.extend(Klass.prototype, options.methods);
     _.extend(_this, options, {
@@ -24,17 +25,17 @@ var Model = exports.Model = function (options) {
 };
 
 _.extend(Model.prototype, {
-    create: function (attrs) {
+    create: function (attrs, options) {
 	var _this = this
 	;
 	attrs = _.defaults({}, attrs, _this.defaults);
-	var instance = _this.get(_this.channelRoot + random_string());
+	var instance = _this.get(_this.channelRoot + random_string(), attrs, options);
 	instance.core.set(attrs);
 	_this.initialize.call(instance);
 	return instance;	
     }
-    , get: function (channel) {
+    , get: function (channel, attrs, options) {
 	var _this = this;
-	return new _this.Klass(new Core(channel));	
+	return new _this.Klass(new _this.Core(channel, attrs, options));
     }
 });
