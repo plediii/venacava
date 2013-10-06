@@ -2,6 +2,9 @@
 var redis = require('redis')
 ;
 
-exports.create = function (args) {
+var create = exports.create = function (args) {
     return redis.createClient.apply(redis, args);
 };
+
+
+exports.default = create();

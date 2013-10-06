@@ -4,13 +4,13 @@ var _ = require('underscore')
 
 var log = console.log;
 
-var Core = exports.Core = function (channel, attrs) {
+var Core = exports.Core = function (channel, attrs, options) {
     this.channel = channel;
     this._attrs = attrs || {};
-    this._redis = Core._redis;
+    this._redis = (options && options.redis) || Core._redis;
 };
 
-Core._redis = require(__dirname + '/redisClient').create();
+Core._redis = require(__dirname + '/redisClient').default;
 
 _.each(['exists', 'erase'], function (funcName) {
     Core[funcName] = function (channel) {
