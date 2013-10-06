@@ -1,12 +1,8 @@
 
 var _ = require('underscore')
-, crypto = require('crypto')
 , Core = require(__dirname + '/core').Core
+, random_string = require(__dirname + '/util').random_string
 ;
-
-var random_string = exports.random_string = function () {
-    return crypto.randomBytes(12).toString('hex');
-};
 
 var Model = exports.Model = function (options) {
     var _this = this
