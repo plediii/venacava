@@ -17,9 +17,8 @@ var randomId = function () {
 
 describe('proxy', function () {
 
-    var cbHandler = new CallbackHandler(randomId(), redisClient.create(), Core._redis)
-    , monitor
-    , newModel = function (proto, redisInstance) {
+    var monitor = redisClient.create()
+    , newModel = function (proto) {
 	var model = new Model(proto);
 	return model;
     }
@@ -28,12 +27,7 @@ describe('proxy', function () {
     }
     ;
 
-
-    before(function(done) {
-	monitor = redisClient.create();
-	monitor.monitor(function (err, res) {});
-	return done();
-    });
+    monitor.monitor(function (err, res) {});
 
     it('should be constructable', function () {
 	assert(newProxy({
@@ -234,27 +228,31 @@ describe('proxy', function () {
 
 	it('should not execute from different redis contexts concurrently ', function (done) {
 	    var model = newModel({})
+	    , proxyMethods = {
+		method: function (cb) {
+		    var _this = this
+		    , count = _this.core.get('count') || 0
+		    ;
+		    return _.delay(function () {
+			_this.core.set('count', 1 + count);
+			return cb();
+		    }, 250);
+		}
+	    }
 	    , proxy = newProxy({
 		model: model
-		, methods: {
-		    method: function (cb) {
-			var _this = this
-			, count = _this.core.get('count') || 0
-			;
-			return _.delay(function () {
-			    _this.core.set('count', 1 + count);
-			    return cb();
-			}, 250);
-		    }
-		}
+		, methods: proxyMethods
 	    })
 	    , instance = proxy.create({})
 	    , otherRedis = redisClient.create()
-	    , otherModel = newModel(model.proto, otherRedis)
+	    , otherRedisSub = redisClient.create()
+	    , otherModel = newModel(model.proto)
 	    , otherProxy = newProxy({
 		model: otherModel
+	    }, { 
+		cbHandler: new CallbackHandler(ranndom, otherRedisSub, otherRedis)
 	    })
-	    , otherInstance = otherProxy.get(instance.channel)
+	    , otherInstance = otherProxy.get(instance.channel, {}, {redis: otherRedis})
 	    , finished = _.after(4, function () {
 		var dup = model.get(instance.channel);
 		return dup.core.fetch(function (err) {
@@ -274,7 +272,7 @@ describe('proxy', function () {
 	    _.delay(otherMethod, 50, finished);
 	}); 
 
-	it('should not call redis to lock a locked proxy ', function (done) {
+	it('should not attempt to lock a locked proxy ', function (done) {
 	    var model = newModel({})
 	    , proxy = newProxy({
 		    model: model
@@ -298,6 +296,59 @@ describe('proxy', function () {
 	    instance.method(finished);
 	}); 
 
+
+	it('should share proxy locks across instances', function (done) {
+	    var model = newModel({})
+	    , proxy = newProxy({
+		    model: model
+	    })
+	    , instance = proxy.create({})
+	    , otherInstance = proxy.get(instance.channel)
+	    , setnxCount = 0
+	    , watchSetnx = function (time, args) {
+		if (args[0].toUpperCase() === 'SETNX') {
+		    setnxCount = setnxCount + 1;
+		}
+	    }
+	    , finished = _.after(4, function () {
+		assert.equal(setnxCount, 1, 'bad number of lock attempts: ' + setnxCount);
+		return done();
+	    })
+	    , method = _.bind(instance.method, instance)
+	    ;
+	    monitor.on("monitor", watchSetnx);
+	    instance.method(finished);
+	    otherInstance.method(finished);
+	    instance.method(finished);
+	    otherInstance.method(finished);
+	});
+
+    });
+
+    describe('instance#model', function () {
+	it('should exist on invoked proxy method contexts', function (done) {
+	    var proxy = newProxy({
+		model: newModel({
+		    methods: { 
+			modelMethod: function () {
+			    done();
+			}
+		    }
+		})
+		, methods: {
+		    method: function (cb) {
+			assert(this.model, 'invoked proxy instance did not have a model')
+			assert(this.model.modelMethod, 'invoked proxy instance model did not have the modelMethod');
+			model.modelMethod();
+			return cb();
+		    }
+		}
+	    })
+	    , instance = proxy.create({})
+	    ;
+	    assert(instance.model);
+	    instance.method();
+	});
 
     });
 });
