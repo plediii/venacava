@@ -276,7 +276,12 @@ describe('proxy', function () {
 	it('should not attempt to lock a locked proxy ', function (done) {
 	    var model = newModel({})
 	    , proxy = newProxy({
-		    model: model
+		model: model
+		, methods: {
+		    method: function (cb) {
+			_.delay(cb, 10);
+		    }
+		}
 	    })
 	    , instance = proxy.create({})
 	    , setnxCount = 0
@@ -301,7 +306,12 @@ describe('proxy', function () {
 	it('should share proxy locks across instances', function (done) {
 	    var model = newModel({})
 	    , proxy = newProxy({
-		    model: model
+		model: model
+		, methods: {
+		    method: function (cb) {
+			_.delay(cb, 10);
+		    }
+		}
 	    })
 	    , instance = proxy.create({})
 	    , otherInstance = proxy.get(instance.channel)
@@ -343,14 +353,14 @@ describe('proxy', function () {
 			assert(this.model, 'invoked proxy instance did not have a model')
 			assert(this.model.modelMethod, 'invoked proxy instance model did not have the modelMethod');
 			assert.equal(this.core.channel, channel, 'proxy did not have a core with the expected channel.');
-			model.modelMethod();
+			this.model.modelMethod();
 			return cb();
 		    }
 		}
 	    })
 	    , instance = proxy.create({})
 	    ;
-	    assert(instance.model);
+	    // assert(instance.model);
 	    channel = instance.channel;
 	    instance.method();
 	});
