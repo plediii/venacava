@@ -5,7 +5,7 @@ var _ = require('underscore')
 ;
 
 
-var ProxyQueue = function (channel, redis, cbHandler, model) {
+var ProxyQueue = function (channel, redis, cbHandler, model, methods) {
     var _this = this
     ;
     _this.channel = channel;
@@ -16,6 +16,7 @@ var ProxyQueue = function (channel, redis, cbHandler, model) {
     _this._instance = null;
     _this._lock = 'lock:' + channel;
     _this._queue = 'queue:' + channel;
+    _this._methods = methods;
 };
 
 _.extend(ProxyQueue.prototype, {
@@ -27,11 +28,16 @@ _.extend(ProxyQueue.prototype, {
 	if (_this._instance) {
 	    return _this;
 	}
-	_this._instance = _this._model.get(_this.channel);
+	var model = _this._model.get(_this.channel)
+	_this._instance = _.extend({
+	    model: model
+	    , core: model.core
+	}, _this._methods);
 	_this.lock();
     }
     , lock: function () {
-	var _this = this;
+	var _this = this
+	;
 	_this._redis.setnx(_this._lock, 1, function (err, locked) {
 	    if (err) {
 		log('error setting lock for ', _this.lock, err);
@@ -125,16 +131,16 @@ var Proxy = exports.Proxy = function (options) {
     var _this = this
     , model = _this.model = options.model
     , cbHandler = _this.cbHandler = options.cbHandler || Proxy.cbHandler
-    , redis = (options && options.redis) || Proxy.redis
+    , redis = _this._redis = (options && options.redis) || Proxy.redis
+    , methods = _this._methods = options.methods
     ;
-    
     
     var Klass = _this.Klass = function (channel) {
 	this.channel = channel;
-	this.queue = new ProxyQueue(channel, redis, cbHandler, model);
+	this.queue = new ProxyQueue(channel, _this._redis, _this.cbHandler, _this.model, _this._methods);
     };
 
-    _.each(model.proto, function (func, name) {
+    _.each(methods, function (func, name) {
 	Klass.prototype[name] = function () {
 	    this.queue.enqueue(name, _.toArray(arguments));
 	};
