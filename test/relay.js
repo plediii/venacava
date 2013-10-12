@@ -41,6 +41,15 @@ describe('relay', function () {
 	assert(mockContext().relay);
     });
 
+    describe('#socket', function () {
+	it('should exist on new relays', function () {
+	    var context = mockContext()
+	    ;
+
+	    assert.equal(context.relay.socket, context.socket);
+	});
+    });
+
     describe('#subscribe', function () {
 
 	it('should relay subscription requests', function (done) {
