@@ -48,13 +48,13 @@ describe('service', function () {
 
 	it('should serve sockets', function (done) {
 
-	    var called = false
+	    var called = 0
 	    , service = newService({
 		system: newSystem({
 		})
 		, methods: {
 		    method: function (data) {
-			called = true;
+			called = called + 1;
 			assert.equal(this.socket, socket, 'service instance did not have socket');
 			assert.equal(this.session, session, 'service instance did not have session');
 			assert.equal(data.x, 1, 'service method was not called with expected argument');
@@ -88,7 +88,7 @@ describe('service', function () {
 		    x: 1
 		}
 	    });
-	    assert(called, 'method was not called');
+	    assert.equal(called, 1);
 
 	});
     });
