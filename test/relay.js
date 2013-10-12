@@ -22,7 +22,7 @@ var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
 };
 
-describe('Relay', function () {
+describe('relay', function () {
 
     var mockContext function () {
 	var socket = new MockSocket()
@@ -37,61 +37,60 @@ describe('Relay', function () {
 	};
     };
 
-
-    before(function(done) {
-	// redis = redisClient();
-	return done();
-    });
-
     it('should be constructable', function () {
 	assert(mockContext().relay);
     });
 
-    it('should relay subscription requests', function (done) {
-	var context = mockContext()
-	, channel = randomId()
-	; 
-	context.socket._receive('subscribe', channel);
-	assert.equal(1, context.redissub.subscriptions[channel]);
-    });
+    describe('#subscribe', function () {
 
-    it('should relay redis messages', function () {
-	var context = mockContext()
-	, channel = randomId()
-	; 
-	context.socket._on(channel, function (msg) {
-	    assert.equal(msg, 1);
+	it('should relay subscription requests', function (done) {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    context.relay.subscribe(channel);
+	    assert.equal(1, context.redissub.subscriptions[channel]);
 	});
-	context.socket._receive('subscribe', channel);
-	context.redissub._emit(channel, 1);
-    });
 
-    it('should not receive messages from channels not subscribed to', function () {
-	var context = mockContext()
-	, channel = randomId()
-	; 
-	context.socket._on(channel, function (msg) {
-	    assert(false);
+	it('should cause redis messages to be relayed', function (done) {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    context.socket._emit(channel, function (msg) {
+		assert.equal(msg, 1);
+		done();
+	    });
+	    context.relay.subscribe(channel);
+	    context.redissub._receive(channel, 1);
 	});
-	context.socket._receive('subscribe', channel);
-	context.redissub._emit(randomId(), 1);
-    });
 
-
-    it('should unsubscribe on disconnect', function (done) {
-	var context = mockContext()
-	, channel = randomId()
-	; 
-	context.socket._on(channel, function (msg) {
-	    assert.equal(msg, 1);
-	    return done();
+	it('should not receive messages from channels not subscribed to', function (done) {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    context.socket._on(channel, function (msg) {
+		assert.equal(msg, 2);
+		done();
+	    });
+	    context.relay.subscribe(channel);
+	    context.redissub._receive(randomId(), 1);
+	    context.redissub._receive(channel, 2);
 	});
-	context.socket._receive('subscribe', channel);
-	context.socket._receive('disconnect');
-	assert(!context.redissub.subscriptions[channel]);
+
+
+	it('should unsubscribe on disconnect', function (done) {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    context.socket._on(channel, function (msg) {
+		assert.equal(msg, 1);
+		return done();
+	    });
+	    context.relay.subscribe(channel);
+	    context.socket._receive('disconnect');
+	    assert(!context.redissub.subscriptions[channel]);
+	});
+
     });
-
-
 
 });
 

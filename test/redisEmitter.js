@@ -18,13 +18,15 @@ describe('RedisEmitter', function () {
 
     var newRemitter = function (redis) {
 	return new RedisEmitter(redis);
-    };
-
-
-
-    before(function(done) {
-	return done();
-    });
+    }
+    , newContext = function () {
+	var redis = new MockRedisSub();
+	return {
+	    redis: redis
+	    , remitter: newRemitter(redis)
+	}
+    }
+    ;
 
     it('should be constructable', function () {
 	newRemitter(redis);
@@ -32,72 +34,66 @@ describe('RedisEmitter', function () {
 
     it('should subscribe to new channels on the redis subscriber', function () {
 	var channel = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	;
-	
-	remitter.subscribe(channel);
-	assert.equal(redisSub.subscriptions[channel], 1);
+
+	context.remitter.subscribe(channel, function () {});
+	assert.equal(context.redis.subscriptions[channel], 1);
     });
 
 
     it('should only subscribe to new channels on the redis subscriber for the first listener', function () {
 	var channel = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	;
 	
-	remitter.subscribe(channel, function () {});
-	remitter.subscribe(channel, function () {});
-	assert.equal(redisSub.subscriptions[channel], 1);
+	context.remitter.subscribe(channel, function () {});
+	context.remitter.subscribe(channel, function () {});
+	assert.equal(context.redis.subscriptions[channel], 1);
     });
 
     it('should unsubscribe on the redis subscriber when the listener unsubscribes', function () {
 	var channel = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, listener = function () {}
 	;
 	
-	remitter.subscribe(channel, listener);
-	remitter.unsubscribe(channel, listener)
-	assert(!redisSub.hasOwnProperty(channel));
+	context.remitter.subscribe(channel, listener);
+	context.remitter.unsubscribe(channel, listener)
+	assert(!context.redis.subscriptions.hasOwnProperty(channel));
     });
 
     it('should not unsubscribe when there are remaining listeners', function () {
 	var channel = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, listener = function () {}
 	;
 	
-	remitter.subscribe(channel, listener);
-	remitter.subscribe(channel, function () {});
-	remitter.unsubscribe(channel, listener);
-	assert.equal(redisSub.subscriptions[channel], 1);
+	context.remitter.subscribe(channel, listener);
+	context.remitter.subscribe(channel, function () {});
+	context.remitter.unsubscribe(channel, listener);
+	assert.equal(context.redis.subscriptions[channel], 1);
     });
 
     it('should unsubscribe when all listeners have unsubscribed', function () {
 	var channel = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, listener = function () {}
 	, listener2 = function () {}
 	;
 	
-	remitter.subscribe(channel, listener);
-	remitter.subscribe(channel, listener2);
-	remitter.unsubscribe(channel, listener);
-	remitter.unsubscribe(channel, listener2);
-	assert(!redisSub.hasOwnProperty(channel));
+	context.remitter.subscribe(channel, listener);
+	context.remitter.subscribe(channel, listener2);
+	context.remitter.unsubscribe(channel, listener);
+	context.remitter.unsubscribe(channel, listener2);
+	assert(!context.redis.subscriptions.hasOwnProperty(channel));
     });
 
     it('should relay messages on subscribed channel to listener', function () {
 
 	var channelA = randomId()
 	, channelB = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
 	    messages.push(['a', msg]);
@@ -107,9 +103,9 @@ describe('RedisEmitter', function () {
 	    messages.push(['b', msg]);
 	}
 	;
-	remitter.subscribe(channelA, listenA);
-	remitter.subscribe(channelB, listenB);
-	redisSub._emit(channelA, 1);
+	context.remitter.subscribe(channelA, listenA);
+	context.remitter.subscribe(channelB, listenB);
+	context.redis._receive(channelA, 1);
 	assert.deepEqual(messages, [['a', 1]]);
     });
 
@@ -117,20 +113,18 @@ describe('RedisEmitter', function () {
 
 	var channelA = randomId()
 	, channelB = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
 	    messages.push(['a', msg]);
 	}
-	, countB = 0
 	, listenB = function () {
 	    messages.push(['b', msg]);
 	}
 	;
-	remitter.subscribe(channelA, listenA);
-	remitter.subscribe(channelA, listenB);
-	redisSub._emit(channelA, 1);
+	context.remitter.subscribe(channelA, listenA);
+	context.remitter.subscribe(channelA, listenB);
+	redisSub._receive(channelA, 1);
 	assert.equal(1, _.countBy(messages, function (elt) {
 	    return elt[0] === 'a' && elt[1] === 1;
 	}));
@@ -143,21 +137,19 @@ describe('RedisEmitter', function () {
 
 	var channelA = randomId()
 	, channelB = randomId()
-	, redisSub = new MockRedisSub()
-	, remitter = newRemitter(redisSub)
+	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
 	    messages.push(['a', msg]);
 	}
-	, countB = 0
 	, listenB = function () {
 	    messages.push(['b', msg]);
 	}
 	;
-	remitter.subscribe(channelA, listenA);
-	remitter.subscribe(channelA, listenB);
-	remitter.unsubscribe(channelA, listenB);
-	redisSub._emit(channelA, 1);
+	context.remitter.subscribe(channelA, listenA);
+	context.remitter.subscribe(channelA, listenB);
+	context.remitter.unsubscribe(channelA, listenB);
+	context.redis._receive(channelA, 1);
 	assert.equal(1, _.countBy(messages, function (elt) {
 	    return elt[0] === 'a' && elt[1] === 1;
 	}));
