@@ -370,7 +370,7 @@ describe('core', function () {
 		var obj = JSON.parse(msg);
 		assert.equal(channel, core.channel, 'received message on unknown channel.');
 		assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
-		assert.equal(obj.subject, 'set', 'message subject was not unset.');
+		assert.equal(obj.subject, 'set', 'message subject was not "set".');
 		assert(obj.hasOwnProperty('body'), 'message did not have a body');
 		assert.deepEqual(obj.body, attrs, 'wrong message body');
 		done();
@@ -383,7 +383,7 @@ describe('core', function () {
 	    });
 	});
 
-	it('should send unset updates', function (done) {
+	it('should send "unset" updates', function (done) {
 	    var subRedis = redisClient.create()
 	    , core = newCore()
 	    , attrs = {x: 1}
@@ -392,7 +392,7 @@ describe('core', function () {
 		var obj = JSON.parse(msg);
 		assert.equal(channel, core.channel, 'received message on unknown channel.');
 		assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
-		assert.equal(obj.subject, 'unset', 'message subject was not unset.');
+		assert.equal(obj.subject, 'unset', 'message subject was not "unset".');
 		assert(obj.hasOwnProperty('body'), 'message did not have a body');
 		assert(obj.body.hasOwnProperty('x'), 'message body did not have the expected atribute');
 		done();
