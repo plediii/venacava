@@ -2,6 +2,7 @@
 var _ = require('underscore')
 , redisClient = require(__dirname + '/redisClient')
 , callbackHandler = require(__dirname + '/callbackHandler')
+, EventEmitter = require('events').EventEmitter
 ;
 
 
@@ -17,6 +18,7 @@ var ProxyQueue = function (channel, redis, cbHandler, model, methods) {
     _this._lock = 'lock:' + channel;
     _this._queue = 'queue:' + channel;
     _this._methods = methods;
+    _this.emitter = new EventEmitter();
 };
 
 _.extend(ProxyQueue.prototype, {
@@ -97,6 +99,7 @@ _.extend(ProxyQueue.prototype, {
 	;
 	if (local.length === 0) {
 	    _this._instance = null;
+	    _this.emitter.emit('release');
 	    return _this.nextLock();
 	}
 	else {
@@ -133,16 +136,23 @@ var Proxy = exports.Proxy = function (options) {
     , cbHandler = _this.cbHandler = options.cbHandler || Proxy.cbHandler
     , redis = _this._redis = (options && options.redis) || Proxy.redis
     , methods = _this._methods = options.methods
+    , qcache  = {}
     ;
+
     
     var Klass = _this.Klass = function (channel) {
 	this.channel = channel;
-	this.queue = new ProxyQueue(channel, _this._redis, _this.cbHandler, _this.model, _this._methods);
     };
 
     _.each(methods, function (func, name) {
 	Klass.prototype[name] = function () {
-	    this.queue.enqueue(name, _.toArray(arguments));
+	    if (!qcache.hasOwnProperty(this.channel)) {
+		var q = qcache[this.channel] = new ProxyQueue(this.channel, _this._redis, _this.cbHandler, _this.model, _this._methods);
+		q.emitter.on('release', function () {
+		    delete qcache[this.channel];
+		});
+	    }
+	    qcache[this.channel].enqueue(name, _.toArray(arguments));
 	};
     });
 };
