@@ -24,14 +24,14 @@ var randomId = function () {
 
 describe('relay', function () {
 
-    var mockContext function () {
+    var mockContext = function () {
 	var socket = new MockSocket()
 	, redissub = new MockRedisSub()
 	, remitter = new RedisEmitter(redissub)
 	;
 	return {
 	    socket: socket
-	    , redissub; redissub
+	    , redissub: redissub
 	    , remitter: remitter
 	    , relay: new Relay(socket, remitter)
 	};

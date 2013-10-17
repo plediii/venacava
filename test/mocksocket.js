@@ -8,7 +8,12 @@ var MockSocket = exports.MockSocket = function () {
 };
 
 _.extend(MockSocket.prototype, {
-
+    _receive: function () {
+	this.emit.apply(this, arguments);
+    }
+    , _emit: function () {
+	this.on.apply(this, arguments);
+    }
 }
-, EventEmitter);
+, EventEmitter.prototype);
 
