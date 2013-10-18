@@ -29,7 +29,7 @@ describe('RedisEmitter', function () {
     ;
 
     it('should be constructable', function () {
-	newRemitter(redis);
+	assert(newContext().remitter);
     });
 
     it('should subscribe to new channels on the redis subscriber', function () {
@@ -38,20 +38,10 @@ describe('RedisEmitter', function () {
 	;
 
 	context.remitter.subscribe(channel, function () {});
+	assert(context.redis.subscriptions.hasOwnProperty(channel));
 	assert.equal(context.redis.subscriptions[channel], 1);
     });
-
-
-    it('should only subscribe to new channels on the redis subscriber for the first listener', function () {
-	var channel = randomId()
-	, context = newContext()
-	;
-	
-	context.remitter.subscribe(channel, function () {});
-	context.remitter.subscribe(channel, function () {});
-	assert.equal(context.redis.subscriptions[channel], 1);
-    });
-
+    
     it('should unsubscribe on the redis subscriber when the listener unsubscribes', function () {
 	var channel = randomId()
 	, context = newContext()
@@ -109,6 +99,12 @@ describe('RedisEmitter', function () {
 	assert.deepEqual(messages, [['a', 1]]);
     });
 
+    var countABs = function (arr) {
+	return _.countBy(arr, function (elt) {
+	    return elt[0];
+	});
+    };
+
     it('should relay messages on subscribed channel to all listeners', function () {
 
 	var channelA = randomId()
@@ -118,19 +114,15 @@ describe('RedisEmitter', function () {
 	, listenA = function (msg) {
 	    messages.push(['a', msg]);
 	}
-	, listenB = function () {
+	, listenB = function (msg) {
 	    messages.push(['b', msg]);
 	}
 	;
 	context.remitter.subscribe(channelA, listenA);
 	context.remitter.subscribe(channelA, listenB);
-	redisSub._receive(channelA, 1);
-	assert.equal(1, _.countBy(messages, function (elt) {
-	    return elt[0] === 'a' && elt[1] === 1;
-	}));
-	assert.equal(1, _.countBy(messages, function (elt) {
-	    return elt[0] === 'b' && elt[1] === 1;
-	}));
+	context.redis._receive(channelA, 1);
+	assert.equal(1, countABs(messages).a);
+	assert.equal(1, countABs(messages).b);
     });
 
     it('should not relay messages to unsubscribed listeners', function () {
@@ -150,12 +142,8 @@ describe('RedisEmitter', function () {
 	context.remitter.subscribe(channelA, listenB);
 	context.remitter.unsubscribe(channelA, listenB);
 	context.redis._receive(channelA, 1);
-	assert.equal(1, _.countBy(messages, function (elt) {
-	    return elt[0] === 'a' && elt[1] === 1;
-	}));
-	assert.equal(0, _.countBy(messages, function (elt) {
-	    return elt[0] === 'b' && elt[1] === 1;
-	}));
+	assert.equal(1, countABs(messages).a);
+	assert(!countABs(messages).b);
     });
 
 });
