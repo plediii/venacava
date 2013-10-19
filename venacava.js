@@ -5,6 +5,7 @@ var _ = require('underscore')
 , core = require(__dirname + '/src/core')
 , model = require(__dirname + '/src/model')
 , remitter = require(__dirname + '/src/redisEmitter.js')
+, relay = require(__dirname + '/src/relay.js')
 ;
 // model proxy enqeues prototype functions to be called.  if there is nothing on the target queue, it will start invoking the prototype functions
 
@@ -21,6 +22,8 @@ exports.Proxy = proxy.Proxy;
 exports.redisClient = require(__dirname + '/src/redisClient');
 
 exports.RedisEmitter = remitter.RedisEmitter;
+
+exports.Relay = relay.Relay;
 
 var printExec = function (err, replies) {
     log('exec err = ', err);
