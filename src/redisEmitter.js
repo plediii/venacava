@@ -8,7 +8,7 @@ var RedisEmitter = exports.RedisEmitter = function(redisSub) {
     this._redisSub = redisSub;
     var emitter = this._emitter = new EventEmitter();
     redisSub.on('message', function (channel, message) {
-	emitter.emit(channel, message);
+	emitter.emit(channel, _.toArray(arguments));
     });
 };
 
@@ -17,10 +17,11 @@ _.extend(RedisEmitter.prototype, {
 	var _this = this
 	, emitter = _this._emitter;
 	;
-	if (_this._numListeners(channel) < 1) {
+	emitter.on(channel, listener);
+	if (_this._numListeners(channel) === 1) {
 	    _this._redisSub.subscribe(channel);
 	}
-	emitter.on(channel, listener);
+
     }
     , unsubscribe: function (channel, listener) {
 	var _this = this
