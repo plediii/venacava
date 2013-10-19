@@ -52,7 +52,7 @@ describe('relay', function () {
 
     describe('#subscribe', function () {
 
-	it('should relay subscription requests', function (done) {
+	it('should relay subscription requests', function () {
 	    var context = mockContext()
 	    , channel = randomId()
 	    ; 
@@ -76,7 +76,7 @@ describe('relay', function () {
 	    var context = mockContext()
 	    , channel = randomId()
 	    ; 
-	    context.socket._on(channel, function (msg) {
+	    context.socket._emit(channel, function (msg) {
 		assert.equal(msg, 2);
 		done();
 	    });
@@ -86,17 +86,17 @@ describe('relay', function () {
 	});
 
 
-	it('should unsubscribe on disconnect', function (done) {
+	it('should unsubscribe on disconnect', function () {
 	    var context = mockContext()
 	    , channel = randomId()
 	    ; 
-	    context.socket._on(channel, function (msg) {
-		assert.equal(msg, 1);
-		return done();
+	    context.socket._emit(channel, function (msg) {
+		assert.equal(false);
 	    });
 	    context.relay.subscribe(channel);
 	    context.socket._receive('disconnect');
 	    assert(!context.redissub.subscriptions[channel]);
+	    context.redissub._receive(channel, 1);
 	});
 
     });
