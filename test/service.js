@@ -14,8 +14,8 @@ var randomId = function () {
 
 describe('service', function () {
 
-    var newService = function (name, system) {
-	var service = new Service(name, system);
+    var newService = function (name, options) {
+	var service = new Service(name, options);
 	return service;
     }
     , newSystem = function (methods) {
@@ -33,23 +33,23 @@ describe('service', function () {
     ;
 
     it('should be constructable', function () {
-	assert(newService({
+	assert(newService('test', {
 	    system: newSystem({})
 	}), 'unable to create a new service.');
     });
 
     describe('#serve', function () {
 	it('should exist', function () {
-	    var service = newService({
+	    var service = newService('test', {
 		system: newSystem({})
 	    });
-	    assert(service.serve, 'proxy does not have a create property.');
+	    assert(service.serve);
 	});
 
-	it('should serve sockets', function (done) {
+	it('should serve sockets', function () {
 
 	    var called = 0
-	    , service = newService({
+	    , service = newService('test', {
 		system: newSystem({
 		})
 		, methods: {
@@ -62,7 +62,7 @@ describe('service', function () {
 			assert.equal(this.system.channel, 'x', 'service was called with system without expected channel');
 		    }
 		    , otherMethod: function () {
-			assert(false, 'otherMethod was not intended to be called')
+			assert(false, 'otherMethod was called')
 		    }
 		}
 	    })
@@ -72,7 +72,7 @@ describe('service', function () {
 	    }
 	    ;
 	    
-	    service.serve('test', socket, session);
+	    service.serve(socket, session);
 	    socket._receive('nottest', {
 		channel: 'x'
 		, method: 'method'
