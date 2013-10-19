@@ -41,6 +41,19 @@ describe('RedisEmitter', function () {
 	assert(context.redis.subscriptions.hasOwnProperty(channel));
 	assert.equal(context.redis.subscriptions[channel], 1);
     });
+
+    it('should not subscribe on redis given a null listener', function () {
+	var channel = randomId()
+	, context = newContext()
+	;
+
+	try {
+	    context.remitter.subscribe(channel, null);
+	}
+	catch (err) {}
+	assert(!context.redis.subscriptions.hasOwnProperty(channel));
+    });
+
     
     it('should unsubscribe on the redis subscriber when the listener unsubscribes', function () {
 	var channel = randomId()
@@ -86,11 +99,13 @@ describe('RedisEmitter', function () {
 	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
-	    messages.push(['a', msg]);
+	    assert.equal(msg[0], channelA);
+	    messages.push(['a', msg[1]]);
 	}
 	, countB = 0
 	, listenB = function () {
-	    messages.push(['b', msg]);
+	    assert.equal(msg[0], channelB);
+	    messages.push(['b', msg[1]]);
 	}
 	;
 	context.remitter.subscribe(channelA, listenA);
@@ -112,10 +127,11 @@ describe('RedisEmitter', function () {
 	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
-	    messages.push(['a', msg]);
+	    assert.equal(msg[0], channelA);
+	    messages.push(['a', msg[1]]);
 	}
 	, listenB = function (msg) {
-	    messages.push(['b', msg]);
+	    messages.push(['b', msg[1]]);
 	}
 	;
 	context.remitter.subscribe(channelA, listenA);
@@ -132,10 +148,10 @@ describe('RedisEmitter', function () {
 	, context = newContext()
 	, messages = []
 	, listenA = function (msg) {
-	    messages.push(['a', msg]);
+	    messages.push(['a', msg[1]]);
 	}
 	, listenB = function () {
-	    messages.push(['b', msg]);
+	    messages.push(['b', msg[1]]);
 	}
 	;
 	context.remitter.subscribe(channelA, listenA);
