@@ -62,14 +62,14 @@
 			     }
 			     ;
 			     _instance.socket.on(_instance.channel, listener);
+			     _instance.emitMethod('subscribe');
 			 }
 			 , unsubscribe: function () {
 			     var _instance = this;
 			     _instance.socket.removeListener(_instance.channel, _instance._listener);
+			     _instance.emitMethod('unsubscribe');
 			 }
-		     }
-		     , _.object(_.map(options.methods, function (funcName) {
-			 return [funcName, function (data) {
+			 , emitMethod: function (funcName, data) {
 			     var _instance = this
 			     ;
 			     _instance.socket.emit(_service.name, {
@@ -77,6 +77,11 @@
 				 , method: funcName
 				 , data: data
 			     });
+			 }
+		     }
+		     , _.object(_.map(options.methods, function (funcName) {
+			 return [funcName, function (data) {
+			     this.emitMethod(funcName, data);
 			 }];
 		     })));
 	}
