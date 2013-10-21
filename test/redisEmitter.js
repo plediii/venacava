@@ -114,6 +114,23 @@ describe('RedisEmitter', function () {
 	assert.deepEqual(messages, [['a', 1]]);
     });
 
+    it('should relay complex messages on subscribed channel to listener', function (done) {
+
+	var channel = randomId()
+	, context = newContext()
+	, messages = []
+	, listen = function ( msg) {
+	    assert(msg[1].hasOwnProperty('tag'));
+	    assert.equal(msg[1].tag, 'test');
+	    done();
+	}
+	;
+	context.remitter.subscribe(channel, listen);
+	context.redis._receive(channel, {
+	    tag: 'test'
+	});
+    });
+
     var countABs = function (arr) {
 	return _.countBy(arr, function (elt) {
 	    return elt[0];

@@ -72,6 +72,22 @@ describe('relay', function () {
 	    context.redissub._receive(channel, 1);
 	});
 
+	it('should cause complex messages to be relayed', function (done) {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    context.socket._emit(channel, function (msg) {
+		assert(msg.hasOwnProperty('tag'));
+		assert.equal(msg.tag, 'test');
+		done();
+	    });
+	    context.relay.subscribe(channel);
+	    context.redissub._receive(channel, {
+		tag: 'test'
+	    });
+	});
+
+
 	it('should not receive messages from channels not subscribed to', function (done) {
 	    var context = mockContext()
 	    , channel = randomId()
