@@ -207,6 +207,35 @@ describe('venaclient', function () {
 			});
 		    });
 
+		    it('should transmit "subscribe" over the socket as if it was a method', function (done) {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			;
+			context.socket._emit(context.service.name, function (msg) {
+			    assert(msg);
+			    assert.equal(msg.channel, instance.channel);
+			    assert.equal(msg.method, 'subscribe');
+			    done();
+			});
+			instance.subscribe();
+		    });
+
+		    it('should transmit "unsubscribe" over the socket as if it was a method', function (done) {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			;
+			context.socket._emit(context.service.name, function (msg) {
+			    assert(msg);
+			    assert.equal(msg.channel, instance.channel);
+			    if (msg.method === 'unsubscribe') {
+				return done();
+			    }
+			});
+			instance.subscribe();
+			instance.unsubscribe();
+		    });
+
+
 		});
 
 		describe('#on', function () {
