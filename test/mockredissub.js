@@ -30,7 +30,7 @@ _.extend(MockRedisSub.prototype, {
     , _receive: function (channel, message) {
 	if (this.subscriptions[channel] > 0) {
 	    _.each(this.messageListeners, function (listener) {
-		listener(channel, message);
+		listener(channel, JSON.stringify(message));
 	    });
 	}
     }
