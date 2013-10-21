@@ -7,8 +7,9 @@ var _ = require('underscore')
 var RedisEmitter = exports.RedisEmitter = function(redisSub) {
     this._redisSub = redisSub;
     var emitter = this._emitter = new EventEmitter();
-    redisSub.on('message', function (channel, message) {
-	emitter.emit(channel, _.toArray(arguments));
+    redisSub.on('message', function (channel) {
+	var args = [channel].concat(_.map(_.toArray(arguments).slice(1), JSON.parse));
+	emitter.emit(channel, args);
     });
 };
 
