@@ -10,9 +10,25 @@ var counterService = new client.Service('counter', CounterModel, {
     methods: ['incr']
 });
 
+var syncCounterService = new client.Service('syncCounter', CounterModel, {
+    methods: ['incr']
+});
+
+
 var CounterView = Backbone.View.extend({
-    initialize: function () {
-	this.listenTo(this.model, 'change', this.render);
+    initialize: function (options) {
+	var _this = this;
+	_this.service = options.service;
+	_this.model = options.service.model;
+	_this.listenTo(_this.model, 'change', _this.render);
+	_this.$('.incrButton').click(function () {
+	    _this.service.incr();
+	});
+	_this.$('.incrButton2').click(function () {
+	    _this.service.incr();
+	    _this.service.incr();
+	});
+
     }
     , render: function () {
 	this.$('.value').text(this.model.get('count'))
@@ -22,10 +38,19 @@ var CounterView = Backbone.View.extend({
 socket.on('counterChannel', function (channel) {
     console.log('counterChannel = ', channel);
     var counter = counterService.get(channel);
+    counter.subscribe();
     new CounterView({
-	model: counter.model
+	service: counter
 	, el: '#counter'
     });
+});
+
+socket.on('syncCounterChannel', function (channel) {
+    console.log('syncCounterChannel = ', channel);
+    var counter = syncCounterService.get(channel);
     counter.subscribe();
-    counter.incr();
+    new CounterView({
+	service: counter
+	, el: '#syncCounter'
+    });
 });

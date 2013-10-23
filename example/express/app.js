@@ -79,22 +79,46 @@ var counterModel = new venacava.Model({
     }
 });
 
-
 var counterService = new venacava.Service('counter', {
     system: counterModel
     , methods: {
 	incr: function () {
-	    console.log('service incr');
 	    this.system.incr();
 	}
 	, subscribe: function () {
-	    console.log('service subscribe');
 	    this.session.relay.subscribe(this.system.core.channel);
 	}
     }
 });
 
-var counterChannel = counterModel.create({}).core.channel;
+var counterProxy = new venacava.Proxy({
+    model: counterModel
+    , methods: {
+	incr: function (done) {
+	    this.model.core.set({
+		count: 1 + this.model.core.get('count')
+	    });
+	    done();
+	}
+    }
+})
+
+
+var syncCounterService = new venacava.Service('syncCounter', {
+    system: counterProxy
+    , methods: {
+	incr: function () {
+	    this.system.incr();
+	}
+	, subscribe: function () {
+	    this.session.relay.subscribe(this.system.channel);
+	}
+    }
+});
+
+
+var counterChannel = counterModel.create({}).core.channel
+, syncCounterChannel = counterProxy.create({}).channel
 
 io.on('connection', function (socket) {
     var session = {
@@ -102,6 +126,9 @@ io.on('connection', function (socket) {
     };
     counterService.serve(socket, session);
     socket.emit('counterChannel', counterChannel);
+    syncCounterService.serve(socket, session);
+    socket.emit('syncCounterChannel', syncCounterChannel);
+
 });
 
 server.listen(app.get('port'), function(){
