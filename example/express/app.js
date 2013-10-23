@@ -4,10 +4,13 @@
  */
 
 var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path');
+, http = require('http')
+, path = require('path')
+, _ = require('underscore')
+, fs = require('fs')
+, redis = require('redis')
+, venacava = require(__dirname + '/../../venacava')
+;
 
 var app = express();
 
@@ -27,9 +30,80 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.get('/', routes.index);
-app.get('/users', user.list);
+app.get('/', function (req, res) {
+    res.redirect('index.html');
+});
 
-http.createServer(app).listen(app.get('port'), function(){
+_.each([
+    ['/lib/underscore-min.js', 'node_modules/underscore/underscore-min.js']
+    , ['/lib/backbone-min.js', 'node_modules/backbone/backbone-min.js']
+    , ['/lib/venaclient.js', '../../venaclient.js']
+], function (staticMap) {
+    var url = staticMap[0]
+    , filePath = staticMap[1]
+    app.get(url, function (req, res) {
+	fs.readFile(filePath, function (err, data) {
+	    if (err) {
+		res.status(404).send('not found.');
+	    }
+	    else {
+		res.status(200).setHeader('content-type', 'text/javscript');
+		res.send(data);
+	    }
+	});
+    });
+});
+
+var server = http.createServer(app);
+
+var io = require('socket.io').listen(server);
+
+var db = redis.createClient(6379);
+var remitter = new venacava.RedisEmitter(db);
+
+var counterModel = new venacava.Model({
+    defaults: {
+	count: 0
+    }
+    , methods: {
+	incr: function () {
+	    var _model = this;
+	    _model.core.fetch(function (err) {
+		if (!err) {
+		    _model.core.set({
+			count: 1 + _model.core.get('count')
+		    });
+		}
+	    });
+	}
+    }
+});
+
+
+var counterService = new venacava.Service('counter', {
+    system: counterModel
+    , methods: {
+	incr: function () {
+	    console.log('service incr');
+	    this.system.incr();
+	}
+	, subscribe: function () {
+	    console.log('service subscribe');
+	    this.session.relay.subscribe(this.system.core.channel);
+	}
+    }
+});
+
+var counterChannel = counterModel.create({}).core.channel;
+
+io.on('connection', function (socket) {
+    var session = {
+	relay: new venacava.Relay(socket, remitter)
+    };
+    counterService.serve(socket, session);
+    socket.emit('counterChannel', counterChannel);
+});
+
+server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
