@@ -15,7 +15,7 @@ describe('Model', function () {
 
     var redis
     , newModel = function (options) {
-	return new Model(options);
+	return new Model(randomId(), options);
     }
     ;
 
@@ -23,9 +23,14 @@ describe('Model', function () {
 	assert(newModel({}), 'unable to create a new model');
     });
 
+    it('should have a name', function () {
+	assert(newModel({}).hasOwnProperty('name'), 'model does not have a name');
+    });
+
+
     describe('#methods', function () {
 	it('should exist', function () {
-	    assert(newModel({}).methods, 'model did not have a proto property.');
+	    assert(newModel({}).methods, 'model did not have the methods property.');
 	});
 
 	it('should have the functions from the construction argument', function () {
@@ -37,33 +42,109 @@ describe('Model', function () {
 	});
     });
 
+    describe('#createIfNotExists', function () {
+	it('should exist and create a new instance', function (done) {
+	    var id = randomId();
+	    return newModel({}).createIfNotExists(id, {x: 1}, function (err, instance) {
+		assert.ifError(err);
+		assert(instance);
+		done();
+	    });
+	});
+
+	it('should call initialize on non-existant channels', function (done) {
+	    var numCalled = 0
+	    , model = newModel({
+		initialize: function () {
+		    numCalled = numCalled + 1;
+		}
+	    })
+	    , id = randomId()
+	    ;
+	    return model.createIfNotExists(id, {x: 1}, function (err, instance) {
+		assert.ifError(err);
+		assert.equal(1,numCalled);
+		done();
+	    });
+	});
+
+	it('should not call initialize on existant channels', function (done) {
+	    var numCalled = 0
+	    , model = newModel({
+		initialize: function () {
+		    numCalled = numCalled + 1;
+		}
+	    })
+	    , id = model.create({x: 1}).id
+	    ;
+
+	    assert.equal(1,numCalled)
+
+	    return model.createIfNotExists(id, {x: 1}, function (err, instance) {
+		assert.ifError(err);
+		assert.equal(1,numCalled)
+		done();
+	    });
+	});
+
+	it('should have initial values equal to the creation arguments', function (done) {
+	    var attrs = {x: 1}
+	    , model = newModel({})
+	    ;
+
+	    return model.createIfNotExists(randomId(), attrs, function (err, instance) {
+		assert.ifError(err);
+		assert.deepEqual(instance.core.toJSON(), attrs, 'initial core did not have provided attributes.');
+		done();
+	    });
+	});
+
+
+    });
+
     describe('#create', function () {
 
 	it('should exist and create a new instance', function () {
-	    assert(newModel({}).create({}));
+	    assert(newModel({}).create({x: 1}));
 	});
 
 	describe('-> instance', function () {
 
-	    it('should should have a core', function () {
-		var instance = newModel({}).create({});
+	    it('should have a core', function () {
+		var instance = newModel({}).create({x: 1});
 		assert(instance.hasOwnProperty('core'), 'new instance did not have a core.');
 		assert.equal(typeof instance.core, 'object', 'new instance core was not an object');
 	    });
 
-	    it('should have a core with the desired channel prefix', function () {
-		var root = 'prefix/'
-		, instance = newModel({
-		    channelRoot: 'prefix/'
-		}).create({});
-		assert.equal(0, instance.core.channel.indexOf(root));
-	    })
+	    it('should have an id', function () {
+		assert(newModel({}).create({x: 1}).hasOwnProperty('id'));
+	    });
+
+	    it('should have a channel property equal to the core channel', function () {
+		var instance = newModel({}).create({x: 1});
+		assert(instance.hasOwnProperty('channel'), 'new instance did not have a channel.');
+		assert.equal(instance.channel, instance.core.channel);
+	    });
+
+	    it('should have a core channel prefixed with the model name', function () {
+		var model = newModel({})
+		, instance = model.create({x: 1})
+		;
+		assert.equal(0, instance.channel.indexOf(model.name));
+	    });
+
+	    it('should initialize with distinct channel names', function () {
+		var model = newModel({});
+		assert.notEqual(model.create({x: 1}).channel
+				, model.create({x: 1}).channel);
+
+	    });
 
 	    it('should have initial values equal to the creation arguments', function () {
 		var attrs = {x: 1}
 		, instance = newModel({}).create(attrs)
 		;
-		assert.deepEqual(instance.core.toJSON(), attrs, 'initial core did not have provided attributes.');
+		assert.deepEqual(instance.core.toJSON(), attrs);
 	    });
 
 	    describe(':defaults', function () {
@@ -95,8 +176,8 @@ describe('Model', function () {
 
 
 	    describe(':initialize', function () {
-
-		it('should be called on creation', function (done) {
+ 
+		it('should be called by create', function (done) {
 		    newModel({
 			initialize: function () {
 			    return done();
@@ -125,6 +206,27 @@ describe('Model', function () {
 		    }).create({});
 		    assert(instance.initialized, 'create callback did not invoke initialized on the instance');
 		}); 
+
+
+		it('should not be called by get', function () {
+		    var numCalled = 0;
+		    var model = newModel({
+			initialize: function () {
+			    numCalled = numCalled + 1;
+			}
+		    });
+
+		    model.get(randomId());
+		    assert.equal(0, numCalled);
+		});
+
+		it('should get a model with the provided id', function () {
+		    var model = newModel({})
+		    , instance = model.create({})
+		    ;
+		    assert.equal(instance.channel, model.get(instance.id).channel);		    
+		});
+		
 	    });
 	    
 	    describe(':methods', function () {
@@ -178,31 +280,30 @@ describe('Model', function () {
 
     describe('#get', function () {
 	it('should retrieve an object with a core of the same channel', function () {
-	    var model = newModel({});
-	    model.create({}, function (err, instance) {
-		assert.ifError(err);
-		var dup = model.get(instance.core.channel);
-		assert.equal(dup.core.channel, instance.core.channel, 'fetched channel was not correct.');
-	    });
+	    var model = newModel({})
+	    , instance = model.create({})
+	    , dup = model.get(instance.id)
+	    ;
+	    assert.equal(dup.channel, instance.channel);
 	});
     });
 
     describe(':initialize', function () {
-	it('should not be called by fetch', function () {
+	it('should not be called by create', function () {
 	    var model = newModel({
 		initialize: function () {
 		    this.initialized = true;
 		}
-	    });
-	    model.create({}, function (err, instance) {
-		var dup = model.get(instance.core.channel);
-		assert(!dup.initialized);
-	    });
+	    })
+	    , instance = model.create({})
+	    , dup = model.get(instance.id)
+	    ;
+	    assert(!dup.initialized);
 	});
     });
 
     describe(':methods', function () {
-	it('should exist on gotten instances', function () {
+	it('should exist on instances obtained from #get', function () {
 	    var model = newModel({
 		methods: {
 		    method: function (arg) {
@@ -210,13 +311,12 @@ describe('Model', function () {
 			assert.equal(arg, 1, 'method was not called with arguments');
 		    }
 		}
-	    });
-
-	    var instance = model.create({})
-	    , dup = model.get(instance.core.channel)
+	    })
+	    , instance = model.create({})
+	    , dup = model.get(instance.channel)
 	    ;
-	    assert(dup.method, 'instance was not gotten with the defined method'); 
-	    assert.equal(typeof dup.method, 'function', 'instance was not gotten with the defined method as a function');
+	    assert(dup.method);
+	    assert.equal('function', typeof dup.method); 
 	    dup.method(1)
 	});
     });
