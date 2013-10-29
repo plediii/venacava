@@ -293,6 +293,18 @@ describe('core', function () {
 	    });
 	});
 
+	it('should return true for existing channels; obj version', function (done) {
+	    var core = newCore();
+	    core.set({
+		x: 1
+	    });
+	    Core.exists(core.channel, function (err, exists) {
+		assert.ifError(err);
+		assert(exists, 'claimed non-existence.');
+		done();
+	    });
+	});
+
 	describe(':instance', function () {
 
 	    it('should exist', function () {
