@@ -18,8 +18,9 @@ var randomId = function () {
 describe('proxy', function () {
 
     var monitor = redisClient.create()
-    , newModel = function (proto) {
-	var model = new Model(randomId(), proto);
+    , newModel = function (proto, name) {
+	name = name || randomId();
+	var model = new Model(name, proto);
 	return model;
     }
     , newProxy = function (options) {
@@ -50,7 +51,7 @@ describe('proxy', function () {
 	    , instance = proxy.create({x: 1})
 	    ;
 	    assert(instance.channel, 'proxy instance does not have a channel property');
-	    var dup = model.get(instance.channel);
+	    var dup = model.get(instance.id);
 	    dup.core.fetch(function (err) {
 		assert.ifError(err);
 		assert.deepEqual(dup.core.toJSON(), {x: 1});
@@ -73,10 +74,17 @@ describe('proxy', function () {
 	});
 
 	it('should return an instance with the target channel', function () {
-	    assert.equal(newProxy({model: newModel({})}).get('somechannel').channel
-			 , 'somechannel'
-			 , 'bad channel name');
+	    var model = newModel({});
+	   assert.equal(newProxy({model: model}).get('someid').channel
+			, model.get('someid').channel);
 	});
+
+	it('should return an instance with the target id', function () {
+	    var model = newModel({});
+	    assert.equal(newProxy({model: model}).get('someid').id
+			 , 'someid');
+	});
+
     });
 
     describe('instance#methods', function () {
@@ -142,14 +150,14 @@ describe('proxy', function () {
 		model: newModel({})
 		, methods: {
 		    method: function (cb) {
-			assert(this.core.get('x'), 1, 'core was not synchronized');
+			assert.equal(this.core.get('x'), 1);
 			return cb()
 		    }
 		}
 	    })
 	    ;
 	    
-	    proxy.get(proxy.create({x:1}).channel)
+	    proxy.get(proxy.create({x:1}).id)
 		.method(done);
 	});
 
@@ -171,7 +179,7 @@ describe('proxy', function () {
 	    })
 	    , instance = proxy.create({})
 	    , finished = _.after(3, function () {
-		var dup = model.get(instance.channel);
+		var dup = model.get(instance.id);
 		return dup.core.fetch(function (err) {
 		    if (err) {
 			assert.ifError(err);
@@ -205,7 +213,7 @@ describe('proxy', function () {
 	    })
 	    , instance = proxy.create({})
 	    , finished = _.after(6, function () {
-		var dup = model.get(instance.channel);
+		var dup = model.get(instance.id);
 		return dup.core.fetch(function (err) {
 		    if (err) {
 			assert.ifError(err);
@@ -246,16 +254,16 @@ describe('proxy', function () {
 	    , instance = proxy.create({})
 	    , otherRedis = redisClient.create()
 	    , otherRedisSub = redisClient.create()
-	    , otherModel = newModel(model.proto)
+	    , otherModel = newModel({}, model.name)
 	    , otherProxy = newProxy({
 		model: otherModel
 		, methods: proxyMethods
 	    }, { 
 		cbHandler: new CallbackHandler(randomId(), otherRedisSub, otherRedis)
 	    })
-	    , otherInstance = otherProxy.get(instance.channel, {}, {redis: otherRedis})
+	    , otherInstance = otherProxy.get(instance.id, {}, {redis: otherRedis})
 	    , finished = _.after(4, function () {
-		var dup = model.get(instance.channel);
+		var dup = model.get(instance.id);
 		return dup.core.fetch(function (err) {
 		    if (err) {
 			assert.ifError(err);
@@ -314,7 +322,7 @@ describe('proxy', function () {
 		}
 	    })
 	    , instance = proxy.create({})
-	    , otherInstance = proxy.get(instance.channel)
+	    , otherInstance = proxy.get(instance.id)
 	    , setnxCount = 0
 	    , watchSetnx = function (time, args) {
 		if (args[0].toUpperCase() === 'SETNX') {
