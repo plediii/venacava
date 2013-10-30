@@ -6,9 +6,11 @@ var _ = require('underscore')
 ;
 
 
-var ProxyQueue = function (channel, redis, cbHandler, model, methods) {
+var ProxyQueue = function (id, redis, cbHandler, model, methods) {
     var _this = this
+    , channel = model._getChannel(id)
     ;
+    _this.id = id;
     _this.channel = channel;
     _this._redis = redis;
     _this._cbHandler = cbHandler;
@@ -30,7 +32,7 @@ _.extend(ProxyQueue.prototype, {
 	if (_this._instance) {
 	    return _this;
 	}
-	var model = _this._model.get(_this.channel)
+	var model = _this._model.get(_this.id)
 	_this._instance = _.extend({
 	    model: model
 	    , core: model.core
@@ -140,14 +142,15 @@ var Proxy = exports.Proxy = function (options) {
     ;
 
     
-    var Klass = _this.Klass = function (channel) {
-	this.channel = channel;
+    var Klass = _this.Klass = function (id) {
+	this.id = id;
+	this.channel = model._getChannel(id);
     };
 
     _.each(methods, function (func, name) {
 	Klass.prototype[name] = function () {
 	    if (!qcache.hasOwnProperty(this.channel)) {
-		var q = qcache[this.channel] = new ProxyQueue(this.channel, _this._redis, _this.cbHandler, _this.model, _this._methods);
+		var q = qcache[this.channel] = new ProxyQueue(this.id, _this._redis, _this.cbHandler, _this.model, _this._methods);
 		q.emitter.on('release', function () {
 		    delete qcache[this.channel];
 		});
@@ -163,11 +166,11 @@ _.extend(Proxy.prototype, {
 	, model = _this.model
 	, instance = model.create(attrs)
 	;
-	return _this.get(instance.core.channel);
+	return _this.get(instance.id);
     }
-    , get: function (channel) {
+    , get: function (id) {
 	var _this = this;
-	return new _this.Klass(channel);
+	return new _this.Klass(id);
     }
 });
 

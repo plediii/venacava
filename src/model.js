@@ -53,6 +53,10 @@ _.extend(Model.prototype, {
 	;
 	return new _this.Klass(channel, id, new _this.Core(channel, attrs, options));
     }
+    , _getChannel: function (id) {
+	var _this = this;
+	return getChannel(_this.name, id);
+    }
     , createIfNotExists: function (id, attrs, options, cb) {
 	var _this = this
 	, instance = _this.get(id, attrs, options);
