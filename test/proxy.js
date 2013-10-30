@@ -19,7 +19,7 @@ describe('proxy', function () {
 
     var monitor = redisClient.create()
     , newModel = function (proto) {
-	var model = new Model(proto);
+	var model = new Model(randomId(), proto);
 	return model;
     }
     , newProxy = function (options) {
