@@ -22,6 +22,7 @@ var CounterView = Backbone.View.extend({
 	_this.model = options.service.model;
 	_this.listenTo(_this.model, 'change', _this.render);
 	_this.$('.incrButton').click(function () {
+	    console.log('invoking incr');
 	    _this.service.incr();
 	});
 	_this.$('.incrButton2').click(function () {
@@ -34,23 +35,19 @@ var CounterView = Backbone.View.extend({
 	this.$('.value').text(this.model.get('count'))
     }
 })
-
-socket.on('counterChannel', function (channel) {
-    console.log('counterChannel = ', channel);
-    var counter = counterService.get(channel);
+$(function () {
+    var counter = counterService.get('async');
     counter.subscribe();
     new CounterView({
 	service: counter
 	, el: '#counter'
     });
-});
 
-socket.on('syncCounterChannel', function (channel) {
-    console.log('syncCounterChannel = ', channel);
-    var counter = syncCounterService.get(channel);
+    var counter = syncCounterService.get('sync');
     counter.subscribe();
     new CounterView({
 	service: counter
 	, el: '#syncCounter'
     });
 });
+   

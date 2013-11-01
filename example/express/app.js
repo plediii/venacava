@@ -61,7 +61,7 @@ var io = require('socket.io').listen(server);
 var db = redis.createClient(6379);
 var remitter = new venacava.RedisEmitter(db);
 
-var counterModel = new venacava.Model({
+var counterProto = {
     defaults: {
 	count: 0
     }
@@ -77,22 +77,39 @@ var counterModel = new venacava.Model({
 	    });
 	}
     }
-});
+};
 
-var counterService = new venacava.Service('counter', {
+var counterModel = new venacava.Model('counter', counterProto);
+
+var counterService = new venacava.Service({
     system: counterModel
     , methods: {
 	incr: function () {
 	    this.system.incr();
 	}
 	, subscribe: function () {
-	    this.session.relay.subscribe(this.system.core.channel);
+	    var _this = this
+	    , core = this.system.core
+	    , channel = core.channel
+	    ;
+	    _this.session.relay.subscribe(channel);
+	    core.fetch(function (err) {
+		if (err) {
+		    throw err;
+		}
+		_this.socket.emit(channel, {
+		    subject: 'set'
+		    , body: core.toJSON()
+		});
+	    });
 	}
     }
-});
+}); 
+
+var syncCounterModel = new venacava.Model('syncCounter', counterProto);
 
 var counterProxy = new venacava.Proxy({
-    model: counterModel
+    model: syncCounterModel
     , methods: {
 	incr: function (done) {
 	    this.model.core.set({
@@ -100,30 +117,53 @@ var counterProxy = new venacava.Proxy({
 	    });
 	    done();
 	}
+	, fetch: function (done) {
+	    console.log('proxy fetch', this.model.core.toJSON());
+	    return done(this.model.core.toJSON());
+	}
     }
 })
 
 
-var syncCounterService = new venacava.Service('syncCounter', {
+var syncCounterService = new venacava.Service({
     system: counterProxy
     , methods: {
 	incr: function () {
+	    console.log('sync incr');
 	    this.system.incr();
 	}
 	, subscribe: function () {
-	    this.session.relay.subscribe(this.system.channel);
+	    var _this = this
+	    , channel = _this.system.channel
+	    ;
+	    _this.session.relay.subscribe(channel);
+	    _this.system.fetch(function (body) {
+		_this.socket.emit(channel, {
+		    subject: 'set'
+		    , body: body
+		});
+	    });
 	}
     }
 });
 
 
-var counterId = 'async'
+var asyncCounterId = 'async'
 , syncCounterId = 'sync'
 ;
 
+counterModel.createIfNotExists(asyncCounterId, function (err, model) {
+    model.core.fetch(function (err) {
+	console.log('initial async = ', model.core.toJSON());
+    });
+});
+counterModel.createIfNotExists(syncCounterId, function (err, model) {
+    model.core.fetch(function (err) {
+	console.log('initial sync = ', model.core.toJSON());
+    });
+});
 
-counterModel.createIfNotExists(counterId);
-counterModel.createIfNotExists(syncCounterId);
+
 
 
 io.on('connection', function (socket) {
@@ -131,9 +171,7 @@ io.on('connection', function (socket) {
 	relay: new venacava.Relay(socket, remitter)
     };
     counterService.serve(socket, session);
-    socket.emit('counterId', counterId);
     syncCounterService.serve(socket, session);
-    socket.emit('syncCounterChannel', syncCounterId);
 });
 
 server.listen(app.get('port'), function(){
