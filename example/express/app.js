@@ -117,18 +117,23 @@ var syncCounterService = new venacava.Service('syncCounter', {
 });
 
 
-var counterChannel = counterModel.create({}).core.channel
-, syncCounterChannel = counterProxy.create({}).channel
+var counterId = 'async'
+, syncCounterId = 'sync'
+;
+
+
+counterModel.createIfNotExists(counterId);
+counterModel.createIfNotExists(syncCounterId);
+
 
 io.on('connection', function (socket) {
     var session = {
 	relay: new venacava.Relay(socket, remitter)
     };
     counterService.serve(socket, session);
-    socket.emit('counterChannel', counterChannel);
+    socket.emit('counterId', counterId);
     syncCounterService.serve(socket, session);
-    socket.emit('syncCounterChannel', syncCounterChannel);
-
+    socket.emit('syncCounterChannel', syncCounterId);
 });
 
 server.listen(app.get('port'), function(){
