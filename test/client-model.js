@@ -203,7 +203,7 @@ describe('venaclient', function () {
 			;
 			context.socket._emit(context.service.name, function (msg) {
 			    assert(msg);
-			    assert.equal(msg.channel, instance.channel);
+			    assert.equal(msg.id, instance.id);
 			    assert.equal(msg.method, 'method');
 			    assert(msg.hasOwnProperty('data'), 'service method invocation msg did not have a data property.')
 			    assert.equal(msg.data.x, 1);
@@ -220,7 +220,7 @@ describe('venaclient', function () {
 			;
 			context.socket._emit(context.service.name, function (msg) {
 			    assert(msg);
-			    assert.equal(msg.channel, instance.channel);
+			    assert.equal(msg.id, instance.id);
 			    assert.equal(msg.method, 'subscribe');
 			    done();
 			});
@@ -233,7 +233,7 @@ describe('venaclient', function () {
 			;
 			context.socket._emit(context.service.name, function (msg) {
 			    assert(msg);
-			    assert.equal(msg.channel, instance.channel);
+			    assert.equal(msg.id, instance.id);
 			    if (msg.method === 'unsubscribe') {
 				return done();
 			    }
