@@ -13,9 +13,7 @@ var Service = exports.Service = function (options) {
 	this.session = session;
     };
 
-    _.extend(ServiceInstance.prototype, {
-
-    }, options.methods);
+    _.extend(ServiceInstance.prototype, options.methods);
 };
 
 _.extend(Service.prototype, {
