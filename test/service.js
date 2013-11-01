@@ -14,12 +14,11 @@ var randomId = function () {
 
 describe('service', function () {
 
-    var newService = function (name, options) {
-	var service = new Service(name, options);
+    var newService = function (options) {
+	var service = new Service(options);
 	return service;
     }
-    , newSystem = function (methods) {
-	var systemName = randomId();
+    , newSystem = function (systemName, methods) {
 	var Klass = function (id) {
 	    this.id = id;
 	    this.channel = systemName + '/' + id;
@@ -27,7 +26,8 @@ describe('service', function () {
 	_.extend(Klass.prototype, methods);
 
 	return {
-	    get: function (id) {
+	    name: systemName
+	    , get: function (id) {
 		return new Klass(id);
 	    }
 	}
@@ -35,15 +35,15 @@ describe('service', function () {
     ;
 
     it('should be constructable', function () {
-	assert(newService('test', {
+	assert(newService({
 	    system: newSystem({})
 	}), 'unable to create a new service.');
     });
 
     describe('#serve', function () {
 	it('should exist', function () {
-	    var service = newService('test', {
-		system: newSystem({})
+	    var service = newService({
+		system: newSystem('test', {})
 	    });
 	    assert(service.serve);
 	});
@@ -51,9 +51,8 @@ describe('service', function () {
 	it('should serve sockets', function () {
 
 	    var called = 0
-	    , service = newService('test', {
-		system: newSystem({
-		})
+	    , service = newService({
+		system: newSystem('test', {})
 		, methods: {
 		    method: function (data) {
 			called = called + 1;

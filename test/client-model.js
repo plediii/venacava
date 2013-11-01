@@ -57,16 +57,23 @@ describe('venaclient', function () {
 
 	    describe(':instance', function () {
 
-		it('should have the instance channel', function () {
-		    var channel = randomId();
-		    assert.equal(newContext().service.get(channel).channel, channel);
+		it('should have the instance id', function () {
+		    var id = randomId();
+		    assert.equal(newContext().service.get(id).id, id);
 		});
 
-		it('should always be the same object for the same channel', function () {
+		it('should have the instance channel', function () {
+		    var id = randomId()
+		    , service = newContext().service
+		    assert.equal(service.get(id).channel, service.name + '/' + id);
+		});
+
+
+		it('should always be the same object for the same id', function () {
 		    var context = newContext()
-		    , channel = randomId()
-		    , instance = context.service.get(channel)
-		    , otherInstance = context.service.get(channel)
+		    , id = randomId()
+		    , instance = context.service.get(id)
+		    , otherInstance = context.service.get(id)
 		    ;
 		    instance.x = 1;
 		    otherInstance.x = 2;
@@ -108,14 +115,14 @@ describe('venaclient', function () {
 
 		    it('should trigger "set" updates on the model', function (done) {
 			var context = newContext()
-			, channel = randomId()
-			, instance = context.service.get(channel)
+			, id = randomId()
+			, instance = context.service.get(id)
 			;
 			instance.subscribe();
 			instance.model.on('change:x', function () {
 			    assert.equal(instance.model.get('x'), 1);
 			    done();
-			})
+			});
 			context.socket._receive(instance.channel, {
 			    subject: 'set'
 			    , body: {
@@ -126,8 +133,8 @@ describe('venaclient', function () {
 
 		    it('should trigger "unset" updates on the model', function (done) {
 			var context = newContext()
-			, channel = randomId()
-			, instance = context.service.get(channel)
+			, id = randomId()
+			, instance = context.service.get(id)
 			;
 			instance.subscribe();
 			instance.model.set('x', 1);
@@ -154,8 +161,8 @@ describe('venaclient', function () {
 
 		    it('should not trigger "set" updates on the model afterward', function () {
 			var context = newContext()
-			, channel = randomId()
-			, instance = context.service.get(channel)
+			, id = randomId()
+			, instance = context.service.get(id)
 			, called = 0
 			;
 			instance.subscribe();
@@ -301,8 +308,6 @@ describe('venaclient', function () {
 			});
 
 		    });
-
-
 
 		});
 
