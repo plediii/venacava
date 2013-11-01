@@ -36,6 +36,17 @@ describe('proxy', function () {
 	}), 'unable to create a new proxy.');
     });
 
+    it('should have the model\'s name attribute', function () {
+	var model = newModel({})
+	, proxy = newProxy({
+	    model: model
+	})
+	;
+	assert(model.name);
+	assert.equal(proxy.name, model.name);
+    });
+
+
     describe('#create', function () {
 	it('should exist', function () {
 	    var proxy = newProxy({
