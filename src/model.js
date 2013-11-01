@@ -30,22 +30,18 @@ var getChannel = function (name, id) {
     return name + '/' + id;
 };
 
-var initialize = function (instance, initializer, attrs, options) {
-    instance.core.set(attrs);
-    // instance.core.set({id: instance.id})
-    initializer.call(instance);
-    return instance;
-};
-
 _.extend(Model.prototype, {
     create: function (attrs, options) {
 	var _this = this
 	, id = random_string()
 	;
-	attrs = _.defaults({}, attrs, _this.defaults);
-
-	return initialize(_this.get(id, attrs, options)
-		   , _this.initialize, attrs, options)
+	return _this._initialize(_this.get(id), attrs, options);
+    }
+    , _initialize: function (instance, attrs, options) {
+	var _this = this;
+	instance.core.set(_.defaults({}, attrs, _this.defaults));
+	_this.initialize.call(instance);
+	return instance;
     }
     , get: function (id, attrs, options) {
 	var _this = this
@@ -77,7 +73,7 @@ _.extend(Model.prototype, {
 		}
 		else {
 		    if (!exists) {
-			return cb(null, initialize(instance, _this.initialize, attrs, options));
+			return cb(null, _this._initialize(instance, attrs, options));
 		    }
 		    else {
 			return cb(null, instance);
