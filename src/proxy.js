@@ -141,6 +141,8 @@ var Proxy = exports.Proxy = function (options) {
     , qcache  = {}
     ;
 
+    _this.name = model.name;
+
     
     var Klass = _this.Klass = function (id) {
 	this.id = id;
