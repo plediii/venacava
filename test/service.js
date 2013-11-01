@@ -80,7 +80,7 @@ describe('service', function () {
 		    x: 1
 		}
 	    });
-	    assert(!called, 'method was mistakenly called');
+	    assert.equal(0, called);
 	    socket._receive('test', {
 		channel: 'x'
 		, method: 'method'
