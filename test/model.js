@@ -99,6 +99,15 @@ describe('Model', function () {
 	    });
 	});
 
+	it('should return the object to be created', function (done) {
+	    var model = newModel({})
+	    , instance = model.createIfNotExists(randomId(), function (err, cbInstance) {
+		assert.ifError(err);
+		assert.equal(instance, cbInstance);
+		done();
+	    })
+	    ;
+	});
 
     });
 
