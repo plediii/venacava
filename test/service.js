@@ -19,14 +19,16 @@ describe('service', function () {
 	return service;
     }
     , newSystem = function (methods) {
-	var Klass = function (channel) {
-	    this.channel = channel;
+	var systemName = randomId();
+	var Klass = function (id) {
+	    this.id = id;
+	    this.channel = systemName + '/' + id;
 	};
 	_.extend(Klass.prototype, methods);
 
 	return {
-	    get: function (channel) {
-		return new Klass(channel);
+	    get: function (id) {
+		return new Klass(id);
 	    }
 	}
     }
@@ -59,7 +61,7 @@ describe('service', function () {
 			assert.equal(this.session, session, 'service instance did not have session');
 			assert.equal(data.x, 1, 'service method was not called with expected argument');
 			assert(this.system, 'service method was called without system instance');
-			assert.equal(this.system.channel, 'x', 'service was called with system without expected channel');
+			assert.equal(this.system.id, 'x', 'service was called with system without the expected id');
 		    }
 		    , otherMethod: function () {
 			assert(false, 'otherMethod was called')
@@ -74,7 +76,7 @@ describe('service', function () {
 	    
 	    service.serve(socket, session);
 	    socket._receive('nottest', {
-		channel: 'x'
+		id: 'x'
 		, method: 'method'
 		, data: {
 		    x: 1
@@ -82,7 +84,7 @@ describe('service', function () {
 	    });
 	    assert.equal(0, called);
 	    socket._receive('test', {
-		channel: 'x'
+		id: 'x'
 		, method: 'method'
 		, data: {
 		    x: 1

@@ -23,7 +23,7 @@ _.extend(Service.prototype, {
 	var _service = this;
 	socket.on(_service.name, function (msg) {
 	    if (_service._methods.hasOwnProperty(msg.method)) {
-		var instance = new _service.ServiceInstance(_service._system.get(msg.channel), socket, session);
+		var instance = new _service.ServiceInstance(_service._system.get(msg.id), socket, session);
 		instance[msg.method](msg.data);
 	    }
 	});
