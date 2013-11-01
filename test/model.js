@@ -87,6 +87,24 @@ describe('Model', function () {
 	    });
 	});
 
+	it('should have initial values equal to defaults when no attrs provided', function (done) {
+	    var numCalled = 0
+	    , model = newModel({
+		defaults: {
+		    x: 1
+		}
+	    })
+	    ;
+	    return model.createIfNotExists(randomId(), function (err, instance) {
+		assert.ifError(err);
+		instance.core.fetch(function (err) {
+		    assert.ifError(err);
+		    assert.equal(instance.core.get('x'), 1);
+		    done();
+		});
+	    });
+	});
+
 	it('should have initial values equal to the creation arguments', function (done) {
 	    var attrs = {x: 1}
 	    , model = newModel({})
@@ -179,7 +197,7 @@ describe('Model', function () {
 			x: 2
 			, y: 1
 		    }, 'initial core defaults were not overriden by creation argument.');
-		    assert.deepEqual(attrs, {x: 2}, 'creation argument was mutated');
+		    assert.deepEqual(attrs, {x: 2});
 		});
 	    });
 
@@ -298,7 +316,7 @@ describe('Model', function () {
     });
 
     describe(':initialize', function () {
-	it('should not be called by create', function () {
+	it('should not be called by get', function () {
 	    var model = newModel({
 		initialize: function () {
 		    this.initialized = true;
