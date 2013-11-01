@@ -34,10 +34,11 @@
 		methods: []
 	    });
 
-	    var ServiceInstance = _service._ServiceInstance = function (channel, socket, model) {
-		this.channel = channel;
+	    var ServiceInstance = _service._ServiceInstance = function (id, socket, model) {
+		this.id = id;
 		this.socket = socket;
 		this.model = model;
+		this.channel = _service.name + '/' + id;
 	    };
 	    _.extend(ServiceInstance.prototype
 		     , {
@@ -87,10 +88,10 @@
 	}
 
 	_.extend(_client.Service.prototype, {
-	    get: function  (channel) {
+	    get: function  (id) {
 		var _service = this;
-		return _service._cache[channel] 
-		    || (_service._cache[channel] = new _service._ServiceInstance(channel, _service.socket, new _service.Model()));
+		return _service._cache[id] 
+		    || (_service._cache[id] = new _service._ServiceInstance(id, _service.socket, new _service.Model()));
 	    }
 	});
 
