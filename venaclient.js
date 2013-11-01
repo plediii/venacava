@@ -74,7 +74,7 @@
 			     var _instance = this
 			     ;
 			     _instance.socket.emit(_service.name, {
-				 channel: _instance.channel
+				 id: _instance.id
 				 , method: funcName
 				 , data: data
 			     });
