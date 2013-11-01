@@ -113,7 +113,12 @@ _.extend(Core.prototype, {
 	    else {
 		if (attrs && typeof attrs === 'object') {
 		    _.each(attrs, function (val, key) {
-			attrs[key] = JSON.parse(val);
+			try {
+ 			    attrs[key] = JSON.parse(val);
+			}
+			catch (e) {
+			    log('bad json in database: ', _this.channel, attrs);
+			}
 		    });		    
 		    _this._attrs = attrs;
 		    return cb(null)
