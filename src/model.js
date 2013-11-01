@@ -70,18 +70,29 @@ _.extend(Model.prototype, {
 	    attrs = options = void 0;
 	}
 
-	return instance.core.exists(function (err, exists) {
-	    if (err) {
-		return cb(err);
-	    }
-	    else {
-		if (!exists) {
-		    return cb(null, initialize(instance, _this.initialize, attrs, options));
+	instance.core.exists(function (err, exists) {
+	    if (_.isFunction(cb)) {
+		if (err) {
+		    return cb(err);
 		}
 		else {
-		    return cb(null, instance);
+		    if (!exists) {
+			return cb(null, initialize(instance, _this.initialize, attrs, options));
+		    }
+		    else {
+			return cb(null, instance);
+		    }
+		}
+	    }
+	    else {
+		if (err) {
+		    throw err;
+		}
+		if (!exists) {
+		    initialize(instance, _this.initialize, attrs, options);
 		}
 	    }
 	});
+	return instance;
     }
 });
