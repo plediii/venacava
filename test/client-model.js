@@ -113,6 +113,34 @@ describe('venaclient', function () {
 			assert.equal(typeof context.service.get(randomId()).subscribe, 'function');
 		    });
 
+		    it('should emit a subscribe event on the socket', function (done) {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			;
+			context.socket._emit(context.name, function (msg) {
+			    assert.equal(msg.method, 'subscribe');
+			    assert.equal(msg.id, instance.id);
+			    done();
+			});
+			instance.subscribe();
+		    });
+
+		    it('should re-emit a subscribe event when the socket reconnects', function () {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			, called = 0
+			;
+			context.socket._emit(context.name, function (msg) {
+			    if (msg.method === 'subscribe') {
+				called = 1 + called;
+			    }
+			});
+			instance.subscribe();
+			assert.equal(1, called);
+			context.socket._receive('reconnect');
+			assert.equal(2, called);
+		    });
+
 		    it('should trigger "set" updates on the model', function (done) {
 			var context = newContext()
 			, id = randomId()
@@ -148,9 +176,8 @@ describe('venaclient', function () {
 				x: 1
 			    }
 			});
-		    });
+		    });  
 
-		    
 		});
 
 		describe('#unsubscribe', function () {
@@ -183,6 +210,24 @@ describe('venaclient', function () {
 			    }
 			});
 			assert.equal(called, 1);
+		    });
+
+		    it('should not re-emit a subscribe event when the socket reconnects after unsubscribe', function () {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			, called = 0
+			;
+			context.socket._emit(context.name, function (msg) {
+			    if (msg.method === 'subscribe') {
+				called = 1 + called;
+			    }
+			});
+			instance.subscribe();
+			assert.equal(1, called);
+			instance.unsubscribe();
+			context.socket._receive('reconnect');
+			assert.equal(1, called);
+
 		    });
 		});
 
