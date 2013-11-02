@@ -2,7 +2,7 @@
 var _ = require('underscore')
 , proxy = require(__dirname + '/src/proxy')
 , callbackHandler = require(__dirname + '/src/callbackHandler')
-, core = require(__dirname + '/src/core')
+, hashcore = require(__dirname + '/src/hash-core')
 , model = require(__dirname + '/src/model')
 , remitter = require(__dirname + '/src/redisEmitter.js')
 , relay = require(__dirname + '/src/relay.js')
@@ -14,7 +14,7 @@ var log = console.log;
 
 exports.CallbackHandler = callbackHandler.CallbackHandler;
 
-exports.Core = core.Core;
+exports.HashCore = hashcore.HashCore;
 
 exports.Model = model.Model;
 

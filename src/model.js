@@ -1,6 +1,6 @@
 
 var _ = require('underscore')
-, Core = require(__dirname + '/core').Core
+, DefaultCore = require(__dirname + '/hash-core').HashCore
 , random_string = require(__dirname + '/util').random_string
 ;
 
@@ -18,7 +18,7 @@ var Model = exports.Model = function (name, options) {
 	methods: {}
 	, initialize: function () {}
 	, defaults: {}
-	, Core: Core
+	, Core: DefaultCore
     });
     _.extend(Klass.prototype, options.methods);
     _.extend(_this, options, {

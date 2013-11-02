@@ -4,22 +4,22 @@ var _ = require('underscore')
 
 var log = console.log;
 
-var Core = exports.Core = function (channel, attrs, options) {
+var HashCore = exports.HashCore = function (channel, attrs, options) {
     this.channel = channel;
     this._attrs = attrs || {};
-    this._redis = (options && options.redis) || Core._redis;
+    this._redis = (options && options.redis) || HashCore._redis;
 };
 
-Core._redis = require(__dirname + '/redisClient').default;
+HashCore._redis = require(__dirname + '/redisClient').default;
 
 _.each(['exists', 'erase'], function (funcName) {
-    Core[funcName] = function (channel) {
-	var core = new Core(channel);
-	return core[funcName].apply(core, _.toArray(arguments).slice(1));
+    HashCore[funcName] = function (channel) {
+	var hashcore = new HashCore(channel);
+	return hashcore[funcName].apply(hashcore, _.toArray(arguments).slice(1));
     }
 });
 
-_.extend(Core.prototype, {
+_.extend(HashCore.prototype, {
     set: function (key, val, cb) {
 	var _this = this
 	, attrs = key

@@ -1,5 +1,5 @@
 
-var Core = require('../venacava.js').Core
+var HashCore = require('../venacava.js').HashCore
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter
 , redisClient = require('../src/redisClient')
@@ -21,7 +21,7 @@ describe('core', function () {
 	else if (!channel) {
 	    channel = randomId();
 	}
-	return new Core(channel, attrs);
+	return new HashCore(channel, attrs);
     }
     ;
 
@@ -271,12 +271,12 @@ describe('core', function () {
 
     describe('#exists', function () {
 	it('should exist', function () {
-	    assert(Core.exists, 'Core.exists does not exist.');
+	    assert(HashCore.exists, 'HashCore.exists does not exist.');
 	});
 
 	it('should return false for non-existent channels', function (done) {
 	    var channel = newCore().channel;
-	    Core.exists(channel, function (err, exists) {
+	    HashCore.exists(channel, function (err, exists) {
 		assert.ifError(err);
 		assert(!exists, 'claimed existence.');
 		done();
@@ -286,7 +286,7 @@ describe('core', function () {
 	it('should return true for existing channels', function (done) {
 	    var core = newCore();
 	    core.set('x', 1);
-	    Core.exists(core.channel, function (err, exists) {
+	    HashCore.exists(core.channel, function (err, exists) {
 		assert.ifError(err);
 		assert(exists, 'claimed non-existence.');
 		done();
@@ -298,7 +298,7 @@ describe('core', function () {
 	    core.set({
 		x: 1
 	    });
-	    Core.exists(core.channel, function (err, exists) {
+	    HashCore.exists(core.channel, function (err, exists) {
 		assert.ifError(err);
 		assert(exists, 'claimed non-existence.');
 		done();
@@ -335,14 +335,14 @@ describe('core', function () {
     describe('#erase', function () {
 	
 	it('should exist', function () {
-	    assert(Core.erase)
+	    assert(HashCore.erase)
 	});
 
 	it('should erase existing cores', function (done) {
 	    var core = newCore();
 	    core.set('x', 1);
-	    Core.erase(core.channel);
-	    Core.exists(core.channel, function (err, exists) {
+	    HashCore.erase(core.channel);
+	    HashCore.exists(core.channel, function (err, exists) {
 		assert.ifError(err);
 		assert(!exists, 'core was not erased.');
 		done();
@@ -359,7 +359,7 @@ describe('core', function () {
 		var core = newCore();
 		core.set('x', 1);
 		core.erase();
-		Core.exists(core.channel, function (err, exists) {
+		HashCore.exists(core.channel, function (err, exists) {
 		    assert.ifError(err);
 		    assert(!exists, 'core was not erased.');
 		    done();
