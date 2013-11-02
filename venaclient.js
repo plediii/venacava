@@ -35,10 +35,14 @@
 	    });
 
 	    var ServiceInstance = _service._ServiceInstance = function (id, socket, model) {
-		this.id = id;
-		this.socket = socket;
-		this.model = model;
-		this.channel = _service.name + '/' + id;
+		var _this = this;
+		_this.id = id;
+		_this.socket = socket;
+		_this.model = model;
+		_this.channel = _service.name + '/' + id;
+		_this._subscriber = function () {
+		    _this.emitMethod('subscribe');
+		}
 	    };
 	    _.extend(ServiceInstance.prototype
 		     , {
@@ -63,11 +67,13 @@
 			     }
 			     ;
 			     _instance.socket.on(_instance.channel, listener);
-			     _instance.emitMethod('subscribe');
+			     _instance._subscriber();
+			     _instance.socket.on('reconnect', _instance._subscriber);
 			 }
 			 , unsubscribe: function () {
 			     var _instance = this;
 			     _instance.socket.removeListener(_instance.channel, _instance._listener);
+			     _instance.socket.removeListener('reconnect', _instance._subscriber);
 			     _instance.emitMethod('unsubscribe');
 			 }
 			 , emitMethod: function (funcName, data) {
