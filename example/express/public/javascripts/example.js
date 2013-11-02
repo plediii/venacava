@@ -34,7 +34,8 @@ var CounterView = Backbone.View.extend({
     , render: function () {
 	this.$('.value').text(this.model.get('count'))
     }
-})
+});
+
 $(function () {
     var counter = counterService.get('async');
     counter.subscribe();
