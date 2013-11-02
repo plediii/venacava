@@ -157,7 +157,7 @@ counterModel.createIfNotExists(asyncCounterId, function (err, model) {
 	console.log('initial async = ', model.core.toJSON());
     });
 });
-counterModel.createIfNotExists(syncCounterId, function (err, model) {
+syncCounterModel.createIfNotExists(syncCounterId, function (err, model) {
     model.core.fetch(function (err) {
 	console.log('initial sync = ', model.core.toJSON());
     });
