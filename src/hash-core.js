@@ -1,29 +1,23 @@
 
 var _ = require('underscore')
+, Core = require(__dirname + '/core.js').Core
+, inherits = require('util').inherits
 ;
 
 var log = console.log;
 
 var HashCore = exports.HashCore = function (channel, attrs, options) {
-    this.channel = channel;
+    Core.call(this, channel, options)
     this._attrs = attrs || {};
-    this._redis = (options && options.redis) || HashCore._redis;
 };
 
-HashCore._redis = require(__dirname + '/redisClient').default;
-
-_.each(['exists', 'erase'], function (funcName) {
-    HashCore[funcName] = function (channel) {
-	var hashcore = new HashCore(channel);
-	return hashcore[funcName].apply(hashcore, _.toArray(arguments).slice(1));
-    }
-});
-
+_.defaults(HashCore, Core)
+inherits(HashCore, Core);
 _.extend(HashCore.prototype, {
     set: function (key, val, cb) {
 	var _this = this
 	, attrs = key
-	, _redis = _this._redis
+	, _redis = _this.redis
 	, channel = _this.channel
 	;
 	if (!_.isObject(key)) {
@@ -77,14 +71,14 @@ _.extend(HashCore.prototype, {
 	    (targets = {})[key] = null;
 	    delete attrs[key];
 	}
-	return _this._redis.hdel(_this.channel, _.keys(targets), function (err) {
+	return _this.redis.hdel(_this.channel, _.keys(targets), function (err) {
 	    if (err) {
 		if (cb) {
 		    return cb(err);
 		}
 	    }
 	    else {
-		_this._redis.publish(_this.channel, JSON.stringify({
+		_this.redis.publish(_this.channel, JSON.stringify({
 		    subject: 'unset'
 		    , body: targets
 		}));
@@ -106,7 +100,7 @@ _.extend(HashCore.prototype, {
 	var _this = this
 	; 
 
-	return _this._redis.hgetall(_this.channel, function (err, attrs) {
+	return _this.redis.hgetall(_this.channel, function (err, attrs) {
 	    if (err) {
 		return cb(err);
 	    }
@@ -129,35 +123,5 @@ _.extend(HashCore.prototype, {
 	    }
 	}); 
     }
-    , exists: function (cb) {
-	var _this = this
-	;
-	_this._redis.exists(_this.channel, cb);
-    }
-    , erase: function (cb) {
-	var _this = this
-	, channel = _this.channel
-	;
-	cb = cb || logError('error erasing ' + channel);
-	_this._redis.del(channel, function (err) {
-	    if (err) {
-		return cb(err);
-	    }
-	    else {
-		_this._redis.publish(channel, JSON.stringify({
-		    subject: 'erased'
-		}));
-		return cb(null);
-	    }
-	});
-
-    }
 });
 
-var logError = function (message) {
-    return function (err) {
-	if (err) {
-	    log(message, err);
-	}
-    };
-}
