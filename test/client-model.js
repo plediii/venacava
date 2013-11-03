@@ -11,9 +11,11 @@ var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
 };
 
-var newContext = function (options) {
+var newContext = function (options, Model) {
+    
     var name = 'test'
-    , Model = Backbone.Model.extend({
+    , Model = Model || Backbone.Model
+    , model = Model.extend({
 	urlRoot: name
     })
     , socket = new MockSocket()
@@ -22,11 +24,11 @@ var newContext = function (options) {
     ;
 
     return {
-	Model: Model
+	Model: model
 	, name: name
 	, socket: socket
 	, client: client
-	, service: new client.Service(name, Model, options)
+	, service: new client.Service(name, model, options)
     };
 }
 ;
@@ -176,7 +178,27 @@ describe('venaclient', function () {
 				x: 1
 			    }
 			});
-		    });  
+		    });
+
+		    it('should trigger "add" events on the model', function (done) {
+			var context = newContext({}, Backbone.Collection)
+			, id = randomId()
+			, instance = context.service.get(id)
+			, item = {x: 1}
+			;
+			instance.model.push({y:2}); // decoy
+			instance.subscribe();
+			instance.model.on('add', function (added) {
+			    assert(added);
+			    assert.equal(item.x, added.attributes.x);
+			    done();
+			})
+			context.socket._receive(instance.channel, {
+			    subject: 'push'
+			    , body: item
+			});
+
+		    });
 
 		});
 

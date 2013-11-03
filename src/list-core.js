@@ -17,14 +17,14 @@ _.extend(ListCore.prototype, {
 	var _this = this;
 	_this.redis.llen(_this.channel, cb);
     }
-    , append: function (x, cb) {
+    , push: function (x, cb) {
 	var _this = this;
 	_this.redis.rpush(_this.channel, JSON.stringify(x), function (err) {
 	    if (err) {
 		return cb(err);
 	    }
 	    else {
-		_this.emit('append', x);
+		_this.emit('push', x);
 	    }
 	});
     }

@@ -57,8 +57,11 @@
 				 case 'unset': 
 				     _.each(msg.body, function (val, key) {
 					 _model.unset(key);
-				     })
-					 break;
+				     });
+				     break;
+				 case 'push':
+				     _model.push(msg.body);
+				     break;
 				 case 'trigger':
 				     _model.trigger(msg.trigger, msg.data);
 				     break;
