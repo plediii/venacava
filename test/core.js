@@ -162,7 +162,7 @@ describe('base-core', function () {
 
 	describe('#emit', function () {
 
-	    it('should trigger messages on redis without body', function () {
+	    it('should trigger messages on redis without body', function (done) {
 		var subRedis = redisClient.create()
 		, instance = newCore()
 		, subject = randomId()
@@ -184,7 +184,7 @@ describe('base-core', function () {
 		subRedis.subscribe(instance.channel);
 	    });
 
-	    it('should trigger messages on redis without body', function () {
+	    it('should trigger messages on redis without body', function (done) {
 		var subRedis = redisClient.create()
 		, instance = newCore()
 		, subject = randomId()
