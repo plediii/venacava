@@ -39,10 +39,7 @@ _.extend(HashCore.prototype, {
 		}
 	    }
 	    else {
-		_redis.publish(_this.channel, JSON.stringify({
-		    subject: 'set'
-		    , body: attrs
-		}));
+		_this.emit('set', attrs);
 		if (cb) {
 		    return cb(null);
 		}
@@ -78,10 +75,7 @@ _.extend(HashCore.prototype, {
 		}
 	    }
 	    else {
-		_this.redis.publish(_this.channel, JSON.stringify({
-		    subject: 'unset'
-		    , body: targets
-		}));
+		_this.emit('unset', targets);
 		if (cb) {
 		    return cb(null);
 		}
