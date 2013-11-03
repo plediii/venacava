@@ -3,7 +3,7 @@ var _ = require('underscore')
 , crypto = require('crypto')
 ;
 
-var Core = exports.Core = function (channel, options) {
+var Core = exports.Core = function (channel, args, options) {
     this.channel = channel;
     this.redis = (options && options.redis) || Core.redis;
 };
@@ -26,7 +26,8 @@ var logError = function (message) {
 };
 
 _.extend(Core.prototype, {
-    exists: function (cb) {
+    initialize: function () {}
+    , exists: function (cb) {
 	var _this = this
 	;
 	_this.redis.exists(_this.channel, cb);

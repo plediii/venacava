@@ -66,7 +66,7 @@ describe('base-core', function () {
 	    if (!channel) {
 		channel = randomId();
 	    }
-	    return new Core(channel, options);
+	    return new Core(channel, null, options);
 	}
 	;
 
@@ -85,7 +85,7 @@ describe('base-core', function () {
 	    });
 
 
-	    it('should have a take a different redis as an option.', function () {
+	    it('should take a different redis as an option.', function () {
 		var fauxRedis = { fake: 'redis'}
 		, instance = newCore('test', {
 		    redis: fauxRedis

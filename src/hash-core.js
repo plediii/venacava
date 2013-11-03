@@ -8,13 +8,17 @@ var log = console.log;
 
 var HashCore = exports.HashCore = function (channel, attrs, options) {
     Core.call(this, channel, options)
-    // this._attrs = attrs || {};
+    this._attrs = attrs || {};
 };
 
 _.defaults(HashCore, Core)
 inherits(HashCore, Core);
 _.extend(HashCore.prototype, {
-    set: function (key, val, cb) {
+    initialize: function (attrs, options) {
+	var _this = this;
+	_this.set(attrs);
+    }
+    , set: function (key, val, cb) {
 	var _this = this
 	, attrs = key
 	, _redis = _this.redis

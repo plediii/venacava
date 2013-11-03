@@ -31,39 +31,39 @@ var getChannel = function (name, id) {
 };
 
 _.extend(Model.prototype, {
-    create: function (attrs, options) {
+    create: function (args, options) {
 	var _this = this
 	, id = random_string()
 	;
-	return _this._initialize(_this.get(id), attrs, options);
+	return _this._initialize(_this.get(id), args, options);
     }
-    , _initialize: function (instance, attrs, options) {
+    , _initialize: function (instance, args, options) {
 	var _this = this;
-	instance.core.set(_.defaults({}, attrs, _this.defaults));
+	instance.core.initialize(_.defaults({}, args, _this.defaults), options)
 	_this.initialize.call(instance);
 	return instance;
     }
-    , get: function (id, attrs, options) {
+    , get: function (id, args, options) {
 	var _this = this
 	, channel = getChannel(_this.name, id)
 	;
-	return new _this.Klass(channel, id, new _this.Core(channel, attrs, options));
+	return new _this.Klass(channel, id, new _this.Core(channel, args, options));
     }
     , _getChannel: function (id) {
 	var _this = this;
 	return getChannel(_this.name, id);
     }
-    , createIfNotExists: function (id, attrs, options, cb) {
+    , createIfNotExists: function (id, args, options, cb) {
 	var _this = this
-	, instance = _this.get(id, attrs, options);
+	, instance = _this.get(id, args, options);
 	;
 	if (_.isFunction(options)) {
 	    cb = options;
 	    options = void 0;
 	}
-	else if (_.isFunction(attrs)) {
-	    cb = attrs;
-	    attrs = options = void 0;
+	else if (_.isFunction(args)) {
+	    cb = args;
+	    args = options = void 0;
 	}
 
 	instance.core.exists(function (err, exists) {
@@ -73,7 +73,7 @@ _.extend(Model.prototype, {
 		}
 		else {
 		    if (!exists) {
-			return cb(null, _this._initialize(instance, attrs, options));
+			return cb(null, _this._initialize(instance, args, options));
 		    }
 		    else {
 			return cb(null, instance);
@@ -85,7 +85,7 @@ _.extend(Model.prototype, {
 		    throw err;
 		}
 		if (!exists) {
-		    initialize(instance, _this.initialize, attrs, options);
+		    initialize(instance, _this.initialize, args, options);
 		}
 	    }
 	});
