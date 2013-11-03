@@ -27,6 +27,46 @@ describe('Model', function () {
 	assert(newModel({}).hasOwnProperty('name'), 'model does not have a name');
     });
 
+    describe('#Core', function () {
+	it('should exist', function () {
+	    assert(newModel({}).Core);
+	});
+
+	it('should be overridable', function () {
+	    var Core = function() {}
+	    , model = newModel({
+		Core: Core
+	    })
+	    ;
+	    assert.equal(Core, model.Core);
+	});
+
+	it('should be the parent type of instance cores', function () {
+	    var Core = function() {}
+	    , model = newModel({
+		Core: Core
+	    })
+	    , instance = model.get(randomId())
+	    ;
+
+	    assert(instance.core instanceof Core);
+	});
+
+	it('should receive the options argument', function () {
+	    var opts = { x: '1' }
+	    , Core = function(channel, options) {
+		this.options = options;
+	    }
+	    , model = newModel({
+		Core: Core
+	    })
+	    , instance = model.get(randomId(), opts)
+	    ;
+	    assert.deepEqual(opts, instance.core.options);
+	});
+
+    });
+
 
     describe('#methods', function () {
 	it('should exist', function () {

@@ -8,7 +8,7 @@ var log = console.log;
 
 var HashCore = exports.HashCore = function (channel, attrs, options) {
     Core.call(this, channel, options)
-    this._attrs = attrs || {};
+    // this._attrs = attrs || {};
 };
 
 _.defaults(HashCore, Core)
