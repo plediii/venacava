@@ -118,7 +118,6 @@ var counterProxy = new venacava.Proxy({
 	    done();
 	}
 	, fetch: function (done) {
-	    console.log('proxy fetch', this.model.core.toJSON());
 	    return done(this.model.core.toJSON());
 	}
     }
@@ -129,7 +128,6 @@ var syncCounterService = new venacava.Service({
     system: counterProxy
     , methods: {
 	incr: function () {
-	    console.log('sync incr');
 	    this.system.incr();
 	}
 	, subscribe: function () {
@@ -147,10 +145,49 @@ var syncCounterService = new venacava.Service({
     }
 });
 
+var feedModel = new venacava.Model('feed', {
+    Core: venacava.ListCore
+    , methods: {
+	push: function (msg) {
+	    this.core.push(msg);
+	}
+    }
+});
+
+var feedService = new venacava.Service({
+    system: feedModel
+    , methods: {
+	push: function (msg) {
+	    this.system.push({
+		text: msg.text.slice(0, 20)
+	    });
+	}
+	, subscribe: function () {
+	    var _this = this
+	    , core = this.system.core
+	    , channel = core.channel
+	    ;
+	    _this.session.relay.subscribe(channel);
+	    // core.fetch(function (err) {
+	    // 	if (err) {
+	    // 	    throw err;
+	    // 	}
+	    // 	_this.socket.emit(channel, {
+	    // 	    subject: 'set'
+	    // 	    , body: core.toJSON()
+	    // 	});
+	    // });
+	}
+    }
+});
+
 
 var asyncCounterId = 'async'
 , syncCounterId = 'sync'
+, feedId = 'feed'
 ;
+
+
 
 counterModel.createIfNotExists(asyncCounterId, function (err, model) {
     model.core.fetch(function (err) {
@@ -163,8 +200,9 @@ syncCounterModel.createIfNotExists(syncCounterId, function (err, model) {
     });
 });
 
-
-
+feedModel.createIfNotExists(feedId, function (err, model) {
+    console.log('created feed = ', model.channel);
+});
 
 io.on('connection', function (socket) {
     var session = {
@@ -172,6 +210,7 @@ io.on('connection', function (socket) {
     };
     counterService.serve(socket, session);
     syncCounterService.serve(socket, session);
+    feedService.serve(socket, session);
 });
 
 server.listen(app.get('port'), function(){
