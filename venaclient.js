@@ -66,6 +66,7 @@
 				     _model.trigger(msg.trigger, msg.data);
 				     break;
 				 default:
+				     console.log('dropped message ', msg);
 				 }
 			     }
 			     ;
