@@ -1,4 +1,4 @@
-
+ 
 
 (function(){
 
@@ -23,7 +23,7 @@
 	_client.socket = socket;
 	_client.Service =  function (name, Model, options) {
 	    var _service = this
-	    , methods
+	    , triggers
 	    ;
 	    _service.name = name;
 	    _service.Model = Model;
@@ -33,6 +33,8 @@
 	    options = _.defaults({}, options, {
 		methods: []
 	    });
+
+	    triggers = _.extend({}, options.triggers); 
 
 	    var ServiceInstance = _service._ServiceInstance = function (id, socket, model) {
 		var _this = this;
@@ -63,7 +65,13 @@
 				     _model.push(msg.body);
 				     break;
 				 case 'trigger':
-				     _model.trigger(msg.trigger, msg.data);
+				     var trigger = msg.trigger;
+				     if (_.isFunction(triggers[trigger])) {
+					 triggers[trigger].call(_instance, msg.data);
+				     }
+				     else {
+					 console.log('dropped trigger ', msg);
+				     }
 				     break;
 				 default:
 				     console.log('dropped message ', msg);

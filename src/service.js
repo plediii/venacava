@@ -13,7 +13,16 @@ var Service = exports.Service = function (options) {
 	this.session = session;
     };
 
-    _.extend(ServiceInstance.prototype, options.methods);
+    _.extend(ServiceInstance.prototype, options.methods, {
+	trigger: function (name, data) {
+	    var _this = this;
+	    this.socket.emit(_this.system.channel, {
+		subject: 'trigger'
+		, trigger: name
+		, data: data
+	    });
+	}
+    });
 };
 
 _.extend(Service.prototype, {
