@@ -48,7 +48,7 @@ describe('service', function () {
 	    assert(service.serve);
 	});
 
-	it('should serve sockets', function (done) {
+	it('should serve methods from sockets', function (done) {
 
 	    var called = 0
 	    , service = newService({
@@ -91,6 +91,57 @@ describe('service', function () {
 		}
 	    });
 	    assert.equal(called, 1);
+	});
+
+	it('should send trigger events to the socket', function (done) {
+	    var service = newService({
+		system: newSystem('test', {})
+		, methods: {
+		    goTrigger: function () {
+			this.trigger('triggername');
+		    }
+		}
+	    })
+	    , socket = new MockSocket()
+	    ;
+	    service.serve(socket, {});
+	    socket._emit('test/x', function (msg) {
+		assert(msg);
+		assert.equal(msg.subject, 'trigger');
+		assert.equal(msg.trigger, 'triggername');
+		done();
+	    });
+	    socket._receive('test', {
+		id: 'x'
+		, method: 'goTrigger'
+	    });
+	    
+	});
+
+	it('should send trigger events with data to the socket', function (done) {
+	    var service = newService({
+		system: newSystem('test', {})
+		, methods: {
+		    goTrigger: function () {
+			this.trigger('triggername', {x: 1});
+		    }
+		}
+	    })
+	    , socket = new MockSocket()
+	    ;
+	    service.serve(socket, {});
+	    socket._emit('test/x', function (msg) {
+		assert(msg);
+		assert.equal(msg.subject, 'trigger');
+		assert(msg.data);
+		assert.equal(msg.data.x, 1);
+		done();
+	    });
+	    socket._receive('test', {
+		id: 'x'
+		, method: 'goTrigger'
+	    });
+
 	});
     });
 

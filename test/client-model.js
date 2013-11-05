@@ -312,68 +312,64 @@ describe('venaclient', function () {
 
 		});
 
-		describe('#on', function () {
+		describe('#trigger', function () {
 		    
-		    it('should be triggered by socket events for the target channel', function (done) {
+		    it('should respond to watched triggers from the server', function (done) {
 			var context = newContext({
 			    methods: ['method']
-			})
-			, instance = context.service.get(randomId())
-			;
-			instance.subscribe();
-			instance.model.on('trigger', function (data) {
-			    done();
-			});
-
-			context.socket._receive(instance.channel, {
-			    subject: 'trigger'
-			    , trigger: 'trigger'
-			});
-		    });
-
-		    it('should be triggered with data', function (done) {
-			var context = newContext({
-			    methods: ['method']
-			})
-			, instance = context.service.get(randomId())
-			;
-			instance.subscribe();
-			instance.model.on('trigger', function (data) {
-			    assert.equal(data.x, 1);
-			    done();
-			});
-
-			context.socket._receive(instance.channel, {
-			    subject: 'trigger'
-			    , trigger: 'trigger'
-			    , data: {
-				x: 1
+			    , triggers: {
+				trigger: function (data) {
+				    done();
+				}
 			    }
-			});
-		    });
-
-		    it('should not be triggered by socket events for other channels', function () {
-			var context = newContext({
-			    methods: ['method']
 			})
 			, instance = context.service.get(randomId())
-			, called = 0
 			;
 			instance.subscribe();
-			instance.model.on('trigger', function (data) {
-			    called = called + 1;
-			});
-
-			context.socket._receive(randomId(), {
-			    subject: 'trigger'
-			    , trigger: 'trigger'
-			});
-
 			context.socket._receive(instance.channel, {
 			    subject: 'trigger'
 			    , trigger: 'trigger'
 			});
+		    });
 
+		    it('should respond to watched triggers with data from the message', function (done) {
+			var context = newContext({
+			    methods: ['method']
+			    , triggers: {
+				trigger: function (data) {
+				    assert.equal(1, data.x);
+				    done();
+				}
+			    }
+			})
+			, instance = context.service.get(randomId())
+			;
+			instance.subscribe();
+			context.socket._receive(instance.channel, {
+			    subject: 'trigger'
+			    , trigger: 'trigger'
+			    , data: {x: 1}
+			});
+		    });
+
+
+		    it('should call the trigger method with the instance as context', function (done) {
+			var context = newContext({
+			    methods: ['method']
+			    , triggers: {
+				trigger: function (data) {
+				    assert.equal(this, instance);
+				    done();
+				}
+			    }
+			})
+			, instance = context.service.get(randomId())
+			;
+			instance.subscribe();
+			context.socket._receive(instance.channel, {
+			    subject: 'trigger'
+			    , trigger: 'trigger'
+			});
 		    });
 
 		});
