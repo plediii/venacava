@@ -48,7 +48,7 @@ describe('service', function () {
 	    assert(service.serve);
 	});
 
-	it('should serve sockets', function () {
+	it('should serve sockets', function (done) {
 
 	    var called = 0
 	    , service = newService({
@@ -56,14 +56,15 @@ describe('service', function () {
 		, methods: {
 		    method: function (data) {
 			called = called + 1;
-			assert.equal(this.socket, socket, 'service instance did not have socket');
-			assert.equal(this.session, session, 'service instance did not have session');
-			assert.equal(data.x, 1, 'service method was not called with expected argument');
-			assert(this.system, 'service method was called without system instance');
-			assert.equal(this.system.id, 'x', 'service was called with system without the expected id');
+			assert.equal(this.socket, socket);
+			assert.equal(this.session, session);
+			assert.equal(data.x, 1);
+			assert(this.system);
+			assert.equal(this.system.id, 'x');
+			done();
 		    }
 		    , otherMethod: function () {
-			assert(false, 'otherMethod was called')
+			assert(false)
 		    }
 		}
 	    })
@@ -90,7 +91,6 @@ describe('service', function () {
 		}
 	    });
 	    assert.equal(called, 1);
-
 	});
     });
 
