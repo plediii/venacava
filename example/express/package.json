@@ -11,6 +11,6 @@
     "socket.io": "*",
     "underscore": "*",
     "backbone": "*",
-    "socket.io": "*",
+    "socket.io": "*"
   }
 }
