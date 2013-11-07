@@ -151,6 +151,9 @@ var feedModel = new venacava.Model('feed', {
 	push: function (msg) {
 	    this.core.push(msg);
 	}
+	, lastN: function (n, cb) {
+	    this.core.range(-n, 0, cb);
+	}
     }
 });
 
@@ -164,19 +167,18 @@ var feedService = new venacava.Service({
 	}
 	, subscribe: function () {
 	    var _this = this
-	    , core = this.system.core
-	    , channel = core.channel
+	    , system = _this.system
+	    , channel = system.channel
 	    ;
 	    _this.session.relay.subscribe(channel);
-	    // core.fetch(function (err) {
-	    // 	if (err) {
-	    // 	    throw err;
-	    // 	}
-	    // 	_this.socket.emit(channel, {
-	    // 	    subject: 'set'
-	    // 	    , body: core.toJSON()
-	    // 	});
-	    // });
+	    system.lastN(40, function (err, msgs) {
+		if (err) {
+		    console.log('feed fetch error ', err);
+		}
+		else {
+		    _this.trigger('recent', msgs);
+		}
+	    });
 	}
     }
 });

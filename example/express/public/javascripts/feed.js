@@ -5,6 +5,11 @@ var setupFeed = function(client) {
 
     var feedService = new client.Service('feed', FeedCollection, {
 	methods: ['push']
+	, triggers: {
+	    recent: function (msgs) {
+		this.model.reset(msgs);
+	    }
+	}
     });
 
     var MsgView = Backbone.View.extend({
@@ -51,9 +56,8 @@ var setupFeed = function(client) {
 	    return _this;
 	}
 	, renderAll: function () {
-	    console.log('renderAll');
-	    this.$el.empty();
-	    this.model.each(this.renderOne, this);
+	    this.$('.msgs').empty();
+	    this.collection.each(this.renderOne, this);
 	}
     });
 
