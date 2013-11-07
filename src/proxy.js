@@ -48,6 +48,8 @@ _.extend(ProxyQueue.prototype, {
 	    }
 	    else {
 		if (locked === 1) {
+		    _this._redis.expire(_this._lock, 5);
+		    _this._redis.expire(_this._queue, 5);
 		    _this.acquired();
 		}
 		else {
