@@ -33,6 +33,9 @@ _.extend(Service.prototype, {
 		var instance = new _service.ServiceInstance(_service._system.get(msg.id), socket, session);
 		instance[msg.method](msg.data);
 	    }
+	    else {
+		console.log('ignored service call ', msg);
+	    }
 	});
 	socket.emit(_service._system.name);
     }
