@@ -80,12 +80,12 @@
 			     ;
 			     _instance.socket.on(_instance.channel, listener);
 			     _instance._subscriber();
-			     _instance.socket.on('reconnect', _instance._subscriber);
+			     _instance.socket.on(_service.name, _instance._subscriber);
 			 }
 			 , unsubscribe: function () {
 			     var _instance = this;
 			     _instance.socket.removeListener(_instance.channel, _instance._listener);
-			     _instance.socket.removeListener('reconnect', _instance._subscriber);
+			     _instance.socket.removeListener(_service.name, _instance._subscriber);
 			     _instance.emitMethod('unsubscribe');
 			 }
 			 , emitMethod: function (funcName, data) {
