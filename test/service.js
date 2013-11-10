@@ -48,6 +48,19 @@ describe('service', function () {
 	    assert(service.serve);
 	});
 
+	it('should cause the service available to be emitted', function (done) {
+	    var name = 'test'
+	    , service = newService({
+		system: newSystem(name)
+	    }) 
+	    , socket = new MockSocket()
+	    ;
+	    socket._emit(name, function () {
+		done();
+	    });
+	    service.serve(socket);
+	});
+
 	it('should serve methods from sockets', function (done) {
 
 	    var called = 0
