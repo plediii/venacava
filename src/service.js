@@ -34,5 +34,6 @@ _.extend(Service.prototype, {
 		instance[msg.method](msg.data);
 	    }
 	});
+	socket.emit(_service._system.name);
     }
 });
