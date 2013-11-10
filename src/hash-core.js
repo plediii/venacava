@@ -113,10 +113,14 @@ _.extend(HashCore.prototype, {
 			}
 		    });		    
 		    _this._attrs = attrs;
-		    return cb(null)
+		    if (cb) {
+			return cb(null)
+		    }
 		}
 		else {
-		    return cb(null);
+		    if (cb) {
+			return cb(null);
+		    }
 		}
 	    }
 	}); 
