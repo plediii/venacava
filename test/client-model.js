@@ -127,7 +127,7 @@ describe('venaclient', function () {
 			instance.subscribe();
 		    });
 
-		    it('should re-emit a subscribe event when the socket reconnects', function () {
+		    it('should re-emit a subscribe event when the service becomes available', function () {
 			var context = newContext()
 			, instance = context.service.get(randomId())
 			, called = 0
@@ -139,7 +139,7 @@ describe('venaclient', function () {
 			});
 			instance.subscribe();
 			assert.equal(1, called);
-			context.socket._receive('reconnect');
+			context.socket._receive(context.name);
 			assert.equal(2, called);
 		    });
 
@@ -234,7 +234,7 @@ describe('venaclient', function () {
 			assert.equal(called, 1);
 		    });
 
-		    it('should not re-emit a subscribe event when the socket reconnects after unsubscribe', function () {
+		    it('should not re-emit a subscribe event when the service becomes available again', function () {
 			var context = newContext()
 			, instance = context.service.get(randomId())
 			, called = 0
@@ -247,7 +247,7 @@ describe('venaclient', function () {
 			instance.subscribe();
 			assert.equal(1, called);
 			instance.unsubscribe();
-			context.socket._receive('reconnect');
+			context.socket._receive(context.name);
 			assert.equal(1, called);
 
 		    });
