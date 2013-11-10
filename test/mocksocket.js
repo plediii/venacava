@@ -4,16 +4,25 @@ var _ = require('underscore')
 ;
 
 var MockSocket = exports.MockSocket = function () {
-    EventEmitter.call(this);
+    this._local = new EventEmitter();
+    this._remote = new EventEmitter();
 };
 
 _.extend(MockSocket.prototype, {
-    _receive: function () {
-	this.emit.apply(this, arguments);
+    emit: function () {
+	this._remote.emit.apply(this._remote, arguments);
+    }
+    , on: function () {
+	this._local.on.apply(this._local, arguments);
+    }
+    , removeListener: function () {
+	this._local.removeListener.apply(this._local, arguments);
+    }
+    , _receive: function () {
+	this._local.emit.apply(this._local, arguments);
     }
     , _emit: function () {
-	this.on.apply(this, arguments);
+	this._remote.on.apply(this._remote, arguments);
     }
-}
-, EventEmitter.prototype);
+});
 
