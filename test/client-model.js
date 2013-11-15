@@ -143,6 +143,24 @@ describe('venaclient', function () {
 			assert.equal(2, called);
 		    });
 
+		    it('should re-emit a subscribe event once each time the service becomes available', function () {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			, called = 0
+			;
+			context.socket._emit(context.name, function (msg) {
+			    if (msg.method === 'subscribe') {
+				called = 1 + called;
+			    }
+			});
+			instance.subscribe();
+			assert.equal(1, called);
+			context.socket._receive(context.name);
+			assert.equal(2, called);
+			context.socket._receive(context.name);
+			assert.equal(3, called);
+		    });
+
 		    it('should trigger "set" updates on the model', function (done) {
 			var context = newContext()
 			, id = randomId()
