@@ -161,6 +161,40 @@ describe('venaclient', function () {
 			assert.equal(3, called);
 		    });
 
+		    it('should only emit a subscribe event when not already subscribed', function () {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			, called = 0
+			;
+			context.socket._emit(context.name, function (msg) {
+			    if (msg.method === 'subscribe') {
+				called = 1 + called;
+			    }
+			});
+			instance.subscribe();
+			assert.equal(1, called);
+			instance.subscribe();
+			assert.equal(1, called);
+		    });
+
+
+		    describe('#subscribed', function () {
+			it('should exist', function () {
+			    assert(newContext().get(randomId()).hasOwnProperty('subscribed'));
+			});
+
+			it('should be true when the service is subscribed', function () {
+			    var context = newContext()
+			    , instance = context.service.get(randomId())
+			    ;
+			    assert(!instance.subscribed);
+			    instance.subscribe();
+			    assert(instance.subscribed);
+			    instance.unsubscribe();
+			    assert(!instance.subscribed);
+			});
+		    });
+
 		    it('should trigger "set" updates on the model', function (done) {
 			var context = newContext()
 			, id = randomId()
