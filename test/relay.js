@@ -60,6 +60,18 @@ describe('relay', function () {
 	    assert.equal(1, context.redissub.subscriptions[channel]);
 	});
 
+	it('should ignore duplicate subscription tests', function () {
+	    var context = mockContext()
+	    , channel = randomId()
+	    ; 
+	    assert.equal(0, context.remitter.numListeners(channel));
+	    context.relay.subscribe(channel);
+	    assert.equal(1, context.remitter.numListeners(channel));
+	    context.relay.subscribe(channel);
+	    assert.equal(1, context.remitter.numListeners(channel));
+	})
+
+
 	it('should cause redis messages to be relayed', function (done) {
 	    var context = mockContext()
 	    , channel = randomId()
@@ -114,6 +126,7 @@ describe('relay', function () {
 	    assert(!context.redissub.subscriptions[channel]);
 	    context.redissub._receive(channel, 1);
 	});
+
 
     });
 
