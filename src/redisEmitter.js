@@ -19,7 +19,7 @@ _.extend(RedisEmitter.prototype, {
 	, emitter = _this._emitter;
 	;
 	emitter.on(channel, listener);
-	if (_this._numListeners(channel) === 1) {
+	if (_this.numListeners(channel) === 1) {
 	    _this._redisSub.subscribe(channel);
 	}
 
@@ -29,11 +29,11 @@ _.extend(RedisEmitter.prototype, {
 	, emitter = _this._emitter
 	;
 	emitter.removeListener(channel, listener);
-	if (_this._numListeners(channel) < 1) {
+	if (_this.numListeners(channel) < 1) {
 	    _this._redisSub.unsubscribe(channel);
 	}
     }
-    , _numListeners: function (channel) {
+    , numListeners: function (channel) {
 	return this._emitter.listeners(channel).length;
     }
 })
