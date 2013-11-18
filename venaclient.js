@@ -32,6 +32,7 @@
 
 	    options = _.defaults({}, options, {
 		methods: []
+		, initialize: function () {}
 	    });
 
 	    triggers = _.extend({}, options.triggers); 
@@ -73,6 +74,7 @@
 		    }
 		};
 		_this.subscribed = false;
+		options.initialize.call(this);
 	    };
 	    _.extend(ServiceInstance.prototype
 		     , {
