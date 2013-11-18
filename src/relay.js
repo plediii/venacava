@@ -20,8 +20,10 @@ var Relay = exports.Relay = function (socket, remitter) {
 _.extend(Relay.prototype, {
     subscribe: function (channel) {
 	var _this = this;
-	_this._remitter.subscribe(channel, _this._relayer);
-	_this._subscriptions[channel] = true;
+	if (!_this._subscriptions[channel]) {
+	    _this._remitter.subscribe(channel, _this._relayer);
+	    _this._subscriptions[channel] = true;
+	}
     }
     , unsubscribe: function (channel) {
 	var _this = this;
