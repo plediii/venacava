@@ -69,7 +69,7 @@ describe('relay', function () {
 	    assert.equal(1, context.remitter.numListeners(channel));
 	    context.relay.subscribe(channel);
 	    assert.equal(1, context.remitter.numListeners(channel));
-	})
+	});
 
 
 	it('should cause redis messages to be relayed', function (done) {
