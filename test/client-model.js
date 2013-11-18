@@ -205,7 +205,7 @@ describe('venaclient', function () {
 
 		    describe('#subscribed', function () {
 			it('should exist', function () {
-			    assert(newContext().get(randomId()).hasOwnProperty('subscribed'));
+			    assert(newContext().service.get(randomId()).hasOwnProperty('subscribed'));
 			});
 
 			it('should be true when the service is subscribed', function () {

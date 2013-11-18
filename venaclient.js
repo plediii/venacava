@@ -44,49 +44,56 @@
 		_this.channel = _service.name + '/' + id;
 		_this._subscriber = function () {
 		    _this.emitMethod('subscribe');
+		    _this.subscribed = true;
 		}
+		_this._listener = function (msg) {
+		    switch (msg.subject) {
+		    case 'set': 
+			model.set(msg.body);
+			break;
+		    case 'unset': 
+			_.each(msg.body, function (val, key) {
+			    model.unset(key);
+			});
+			break;
+		    case 'push':
+			model.push(msg.body);
+			break;
+		    case 'trigger':
+			var trigger = msg.trigger;
+			if (_.isFunction(triggers[trigger])) {
+			    triggers[trigger].call(_this, msg.data);
+			}
+			else {
+			    console.log('dropped trigger ', msg);
+			}
+			break;
+		    default:
+			console.log('dropped message ', msg);
+		    }
+		};
+		_this.subscribed = false;
 	    };
 	    _.extend(ServiceInstance.prototype
 		     , {
 			 subscribe: function () {
 			     var _instance = this
 			     , _model = _instance.model
-			     , listener = _instance._listener = function (msg) {
-				 switch (msg.subject) {
-				 case 'set': 
-				     _model.set(msg.body);
-				     break;
-				 case 'unset': 
-				     _.each(msg.body, function (val, key) {
-					 _model.unset(key);
-				     });
-				     break;
-				 case 'push':
-				     _model.push(msg.body);
-				     break;
-				 case 'trigger':
-				     var trigger = msg.trigger;
-				     if (_.isFunction(triggers[trigger])) {
-					 triggers[trigger].call(_instance, msg.data);
-				     }
-				     else {
-					 console.log('dropped trigger ', msg);
-				     }
-				     break;
-				 default:
-				     console.log('dropped message ', msg);
-				 }
-			     }
+			     , listener = _instance._listener
+			     , subscribed = _instance.subscribed
 			     ;
-			     _instance.socket.on(_instance.channel, listener);
-			     _instance._subscriber();
-			     _instance.socket.on(_service.name, _instance._subscriber);
+			     if (!subscribed) {
+				 _instance.socket.on(_instance.channel, listener);
+				 _instance._subscriber();
+				 _instance.socket.on(_service.name, _instance._subscriber);
+			     }
 			 }
 			 , unsubscribe: function () {
 			     var _instance = this;
 			     _instance.socket.removeListener(_instance.channel, _instance._listener);
 			     _instance.socket.removeListener(_service.name, _instance._subscriber);
 			     _instance.emitMethod('unsubscribe');
+			     this.subscribed = false;
 			 }
 			 , emitMethod: function (funcName, data) {
 			     var _instance = this
