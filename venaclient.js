@@ -74,7 +74,7 @@
 		    }
 		};
 		_this.subscribed = false;
-		options.initialize.call(this);
+		options.initialize.call(_this);
 	    };
 	    _.extend(ServiceInstance.prototype
 		     , {
