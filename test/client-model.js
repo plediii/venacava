@@ -94,7 +94,7 @@ describe('venaclient', function () {
 		});
 
 
-		it('should call the initializer when with the instance context', function (done) {
+		it('should call the initializer with the instance context', function () {
 		    var context = newContext({
 			initialize: function () {
 			    this.x = 1;
