@@ -82,6 +82,31 @@ describe('venaclient', function () {
 		    assert.equal(otherInstance.x, instance.x);
 		});
 
+		it('should call the initializer when available', function (done) {
+		    var context = newContext({
+			initialize: function () {
+			    done();
+			}
+		    })
+		    , id = randomId()
+		    , instance = context.service.get(id)
+		    ;		    
+		});
+
+
+		it('should call the initializer when with the instance context', function (done) {
+		    var context = newContext({
+			initialize: function () {
+			    this.x = 1;
+			}
+		    })
+		    , id = randomId()
+		    , instance = context.service.get(id)
+		    ;		    
+		    assert.equal(1, instance.x);
+		});
+
+
 		describe('#socket', function () {
 		    it('should exist', function () {
 			var context = newContext();
