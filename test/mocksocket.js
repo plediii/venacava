@@ -3,9 +3,12 @@ var _ = require('underscore')
 , EventEmitter = require('events').EventEmitter
 ;
 
-var MockSocket = exports.MockSocket = function () {
+var MockSocket = exports.MockSocket = function (options) {
     this._local = new EventEmitter();
     this._remote = new EventEmitter();
+    this.socket = _.extend({
+	connected: true
+    }, options);
 };
 
 _.extend(MockSocket.prototype, {

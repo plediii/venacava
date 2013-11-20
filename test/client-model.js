@@ -11,14 +11,14 @@ var randomId = function () {
     return 'test' + Math.floor(Math.random() * 1000000);
 };
 
-var newContext = function (options, Model) {
+var newContext = function (options, Model, socketoptions) {
     
     var name = 'test'
     , Model = Model || Backbone.Model
     , model = Model.extend({
 	urlRoot: name
     })
-    , socket = new MockSocket()
+    , socket = new MockSocket(socketoptions)
     , client = new venaclient.Client(socket)
     , name = randomId();
     ;
@@ -40,6 +40,78 @@ describe('venaclient', function () {
 
 	it('should be constructable', function () {
 	    assert(newContext().service);
+	});
+
+	describe('#available', function () {
+	    it('should exist', function () {
+		assert(newContext().service.hasOwnProperty('available'));
+	    });
+
+	    it('should initially be false', function () {
+		assert(!newContext().service.available);
+	    });
+
+	    it('should become true when the server advertises its availability', function () {
+		var context = newContext()
+		;
+		context.socket._receive(context.name);
+		assert(context.service.available);
+	    });
+
+	    it('should become false on socket disconnect', function () {
+		var context = newContext()
+		;
+		context.socket._receive(context.name);
+		context.socket._receive('disconnect');
+		assert(!context.service.available);
+	    });
+
+	    it('should emit an availability check on new instances', function () {
+		var context = newContext()
+		, name = randomId()
+		, called = 0
+		;
+		context.socket._emit(name, function (msg) {
+		    assert(msg.check);
+		    called = called + 1;
+		});
+		var service = new context.client.Service(name, context.Model);
+		assert.equal(1, called);
+	    });
+
+	    it('should NOT emit an availability check on new instances when the socket is not connected', function () {
+		var context = newContext({}, null, {
+		    connected: false
+		})
+		, name = randomId()
+		, called = 0
+		;
+		context.socket._emit(name, function (msg) {
+		    assert(false);
+		});
+		var service = new context.client.Service(name, context.Model);
+		assert.equal(0, called);
+	    });
+
+	    describe('#events', function () {
+
+		it('should exist', function () {
+		    var context = newContext()
+		    ;
+		    assert(_.isObject(context.service.events));
+		});
+
+		it('should emit available when the service becomes available', function (done) {
+		    var context = newContext()
+		    ;
+		    context.service.events.on('available', function () {
+			assert(context.service.available);
+			done();
+		    });
+		    context.socket._receive(context.name);
+		});
+		
+	    });
 	});
 
 	describe('#get', function () {
@@ -134,65 +206,37 @@ describe('venaclient', function () {
 
 		});
 
-		describe('#events', function () {
-		    
-		    it('should exist', function () {
-			var context = newContext();
-			assert(_.isObject(context.service.get(randomId()).events));
-		    });
-
-		    describe('#connected', function () {
-
-			it('should initially be false', function () {
-			    var context = newContext();
-			    assert(!context.service.get(randomId()).connected)
-			});
-
-			it('should be emitted when the service is subscribed and available', function (done) {
-			    var context = newContext()
-			    , instance = context.service.get(randomId())
-			    ;
-			    instance.events.on('connected', function (connected) {
-				assert(connected);
-				assert(instance.connected);
-				done();
-			    });
-			    instance.subscribe();
-			    context.socket._receive(context.name);
-			});
-
-			it('should be emitted when the service is subscribed and the socket disconnects', function (done) {
-			    var context = newContext()
-			    , instance = context.service.get(randomId())
-			    ;
-			    instance.subscribe();
-			    instance.events.on('connected', function (connected) {
-				assert(!connected);
-				assert(!instance.connected);
-				done();
-			    });
-			    context.socket._receive('disconnect');
-			});
-
-		    });
-		});
-
 		describe('#subscribe', function () {
 		    it('should exist', function () {
 			var context = newContext();
 			assert.equal(typeof context.service.get(randomId()).subscribe, 'function');
 		    });
 
-		    it('should emit a subscribe event on the socket', function (done) {
+		    it('should emit a subscribe event on the socket when the service is available', function () {
 			var context = newContext()
 			, instance = context.service.get(randomId())
+			, called = 0
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.name, function (msg) {
 			    assert.equal(msg.method, 'subscribe');
 			    assert.equal(msg.id, instance.id);
-			    done();
+			    called = called + 1;
 			});
 			instance.subscribe();
+			assert.equal(1, called);
+		    });
+
+		    it('should NOT emit a subscribe event on the socket before the service is available', function () {
+			var context = newContext()
+			, instance = context.service.get(randomId())
+			, called = 0
+			;
+			context.socket._emit(context.name, function (msg) {
+			    assert(false);
+			});
+			instance.subscribe();
+			assert.equal(0, called);
 		    });
 
 		    it('should re-emit a subscribe event when the service becomes available', function () {
@@ -200,6 +244,7 @@ describe('venaclient', function () {
 			, instance = context.service.get(randomId())
 			, called = 0
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.name, function (msg) {
 			    if (msg.method === 'subscribe') {
 				called = 1 + called;
@@ -216,6 +261,7 @@ describe('venaclient', function () {
 			, instance = context.service.get(randomId())
 			, called = 0
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.name, function (msg) {
 			    if (msg.method === 'subscribe') {
 				called = 1 + called;
@@ -234,6 +280,7 @@ describe('venaclient', function () {
 			, instance = context.service.get(randomId())
 			, called = 0
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.name, function (msg) {
 			    if (msg.method === 'subscribe') {
 				called = 1 + called;
@@ -255,11 +302,60 @@ describe('venaclient', function () {
 			    var context = newContext()
 			    , instance = context.service.get(randomId())
 			    ;
+			    context.socket._receive(context.name);
 			    assert(!instance.subscribed);
 			    instance.subscribe();
 			    assert(instance.subscribed);
 			    instance.unsubscribe();
 			    assert(!instance.subscribed);
+			});
+
+			describe('#events', function () {
+
+			    it('should exist', function () {
+				var context = newContext();
+				assert(_.isObject(context.service.get(randomId()).events));
+			    });
+
+			    it('should be emitted when the service subscribes', function (done) {
+				var context = newContext()
+				, instance = context.service.get(randomId())
+				;
+				instance.events.on('subscribed', function (subscribed) {
+				    assert(subscribed);
+				    assert(instance.subscribed);
+				    done();
+				});
+				instance.subscribe();
+				context.socket._receive(context.name);
+			    });
+
+			    it('should be emitted when the service is subscribed and the socket disconnects', function (done) {
+				var context = newContext()
+				, instance = context.service.get(randomId())
+				;
+				instance.subscribe();
+				instance.events.on('subscribed', function (subscribed) {
+				    assert(!subscribed);
+				    assert(!instance.subscribed);
+				    done();
+				});
+				context.socket._receive('disconnect');
+			    });
+
+			    it('should be emitted when the service is subscribed and then unsubscribed', function (done) {
+				var context = newContext()
+				, instance = context.service.get(randomId())
+				;
+				instance.subscribe();
+				instance.events.on('subscribed', function (subscribed) {
+				    assert(!subscribed);
+				    assert(!instance.subscribed);
+				    done();
+				});
+				instance.unsubscribe();
+			    });
+
 			});
 		    });
 
@@ -359,6 +455,7 @@ describe('venaclient', function () {
 			, instance = context.service.get(randomId())
 			, called = 0
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.name, function (msg) {
 			    if (msg.method === 'subscribe') {
 				called = 1 + called;
@@ -405,6 +502,7 @@ describe('venaclient', function () {
 			var context = newContext()
 			, instance = context.service.get(randomId())
 			;
+			context.socket._receive(context.name);
 			context.socket._emit(context.service.name, function (msg) {
 			    assert(msg);
 			    assert.equal(msg.id, instance.id);
