@@ -35,6 +35,21 @@
 	    _service.Model = Model;
 	    _service.socket = _client.socket;
 	    _service._cache = {};
+	    _service.available = false;
+	    _service.events = _.extend({}, Backbone.Events);
+
+	    socket.on(name, function () {
+		_service.available = true;
+		_service.events.trigger('available');
+	    });
+	    socket.on('disconnect', function () {
+		_service.available = false;
+	    });
+	    if (socket.socket.connected) {
+		socket.emit(name, {
+		    check: true
+		});
+	    }
 
 	    options = _.defaults({}, options, {
 		methods: []
@@ -52,6 +67,7 @@
 		_this._subscriber = function () {
 		    _this.emitMethod('subscribe');
 		    _this.subscribed = true;
+		    _this.events.trigger('subscribed', _this.subscribed);
 		}
 		_this._listener = function (msg) {
 		    switch (msg.subject) {
@@ -82,16 +98,10 @@
 		_this.subscribed = false;
 
 		_this.events = _.extend({}, Backbone.Events);
-		_this.connected = false;
 		socket.on('disconnect', function () {
-		    _this.connected = false;
-		    _this.events.trigger('connected', _this.connected);
+		    _this.subscribed = false;
+		    _this.events.trigger('subscribed', _this.subscribed);
 		});
-		socket.on(_service.name, function () {
-		    _this.connected = true;
-		    _this.events.trigger('connected', _this.connected);
-		});
-
 		options.initialize.call(_this);
 	    };
 	    _.extend(ServiceInstance.prototype
@@ -104,8 +114,10 @@
 			     ;
 			     if (!subscribed) {
 				 _instance.socket.on(_instance.channel, listener);
-				 _instance._subscriber();
 				 _instance.socket.on(_service.name, _instance._subscriber);
+				 if (_service.available) {
+				     _instance._subscriber();
+				 }
 			     }
 			 }
 			 , unsubscribe: function () {
@@ -113,7 +125,8 @@
 			     _instance.socket.removeListener(_instance.channel, _instance._listener);
 			     _instance.socket.removeListener(_service.name, _instance._subscriber);
 			     _instance.emitMethod('unsubscribe');
-			     this.subscribed = false;
+			     _instance.subscribed = false;
+			     _instance.events.trigger('subscribed', _instance.subscribed);
 			 }
 			 , emitMethod: function (funcName, data) {
 			     var _instance = this
