@@ -16,6 +16,12 @@
 	_ = require('underscore');
     }
 
+    var Backbone = root.Backbone;
+    if (!Backbone && (typeof require !== 'undefined')) {
+	Backbone = require('backbone');
+    }
+
+
     var Client = venaclient.Client = function (socket) {
 	var _client = this
 	;
@@ -74,6 +80,15 @@
 		    }
 		};
 		_this.subscribed = false;
+
+		_this.events = _.extend({}, Backbone.Events);
+		socket.on('disconnect', function () {
+		    _this.events.trigger('disconnect');
+		});
+		socket.on(_service.name, function () {
+		    _this.events.trigger('ready');
+		});
+
 		options.initialize.call(_this);
 	    };
 	    _.extend(ServiceInstance.prototype
