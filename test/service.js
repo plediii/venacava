@@ -158,4 +158,21 @@ describe('service', function () {
 	});
     });
 
+    it('should respond to service checks', function (done) {
+	var service = newService({
+	    system: newSystem('test', {})
+	    , methods: {
+	    }
+	})
+	, socket = new MockSocket()
+	;
+	service.serve(socket, {});
+	socket._emit('test', function () {
+	    done();
+	});
+	socket._receive('test', {
+	    check: true
+	});
+    });
+
 });
