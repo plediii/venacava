@@ -141,30 +141,40 @@ describe('venaclient', function () {
 			assert(_.isObject(context.service.get(randomId()).events));
 		    });
 
-		    describe('#ready', function () {
+		    describe('#connected', function () {
 
-			it('should be emitted when the service is available', function (done) {
+			it('should initially be false', function () {
 			    var context = newContext();
-			    context.service.get(randomId()).events.on('ready', function () {
+			    assert(!context.service.get(randomId()).connected)
+			});
+
+			it('should be emitted when the service is subscribed and available', function (done) {
+			    var context = newContext()
+			    , instance = context.service.get(randomId())
+			    ;
+			    instance.events.on('connected', function (connected) {
+				assert(connected);
+				assert(instance.connected);
 				done();
 			    });
+			    instance.subscribe();
 			    context.socket._receive(context.name);
 			});
 
-		    });
-
-		    describe('#disconnect', function () {
-
-			it('should be emitted when the socket disconnects', function (done) {
-			    var context = newContext();
-			    context.service.get(randomId()).events.on('disconnect', function () {
+			it('should be emitted when the service is subscribed and the socket disconnects', function (done) {
+			    var context = newContext()
+			    , instance = context.service.get(randomId())
+			    ;
+			    instance.subscribe();
+			    instance.events.on('connected', function (connected) {
+				assert(!connected);
+				assert(!instance.connected);
 				done();
 			    });
 			    context.socket._receive('disconnect');
 			});
 
 		    });
-		    
 		});
 
 		describe('#subscribe', function () {
