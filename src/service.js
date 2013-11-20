@@ -27,11 +27,16 @@ var Service = exports.Service = function (options) {
 
 _.extend(Service.prototype, {
     serve: function (socket, session) {
-	var _service = this;
-	socket.on(_service._system.name, function (msg) {
+	var _service = this
+	, name = _service._system.name
+	;
+	socket.on(name, function (msg) {
 	    if (_service._methods.hasOwnProperty(msg.method)) {
 		var instance = new _service.ServiceInstance(_service._system.get(msg.id), socket, session);
 		instance[msg.method](msg.data);
+	    }
+	    else if (msg.check) {
+		socket.emit(name);
 	    }
 	    else {
 		console.log('ignored service call ', msg);
