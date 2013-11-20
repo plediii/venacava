@@ -134,6 +134,39 @@ describe('venaclient', function () {
 
 		});
 
+		describe('#events', function () {
+		    
+		    it('should exist', function () {
+			var context = newContext();
+			assert(_.isObject(context.service.get(randomId()).events));
+		    });
+
+		    describe('#ready', function () {
+
+			it('should be emitted when the service is available', function (done) {
+			    var context = newContext();
+			    context.service.get(randomId()).events.on('ready', function () {
+				done();
+			    });
+			    context.socket._receive(context.name);
+			});
+
+		    });
+
+		    describe('#disconnect', function () {
+
+			it('should be emitted when the socket disconnects', function (done) {
+			    var context = newContext();
+			    context.service.get(randomId()).events.on('disconnect', function () {
+				done();
+			    });
+			    context.socket._receive('disconnect');
+			});
+
+		    });
+		    
+		});
+
 		describe('#subscribe', function () {
 		    it('should exist', function () {
 			var context = newContext();
