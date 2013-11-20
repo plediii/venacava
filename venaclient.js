@@ -82,11 +82,14 @@
 		_this.subscribed = false;
 
 		_this.events = _.extend({}, Backbone.Events);
+		_this.connected = false;
 		socket.on('disconnect', function () {
-		    _this.events.trigger('disconnect');
+		    _this.connected = false;
+		    _this.events.trigger('connected', _this.connected);
 		});
 		socket.on(_service.name, function () {
-		    _this.events.trigger('ready');
+		    _this.connected = true;
+		    _this.events.trigger('connected', _this.connected);
 		});
 
 		options.initialize.call(_this);
