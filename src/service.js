@@ -23,6 +23,13 @@ var Service = exports.Service = function (options) {
 	    });
 	}
     });
+
+    if (options.disconnect) {
+	this._disconnect = options.disconnect;
+    }
+    else {
+	this._disconnect = function () {};
+    }
 };
 
 _.extend(Service.prototype, {
@@ -42,6 +49,11 @@ _.extend(Service.prototype, {
 		console.log('ignored service call ', msg);
 	    }
 	});
+
+	socket.on('disconnect', function () {
+	    _service._disconnect(session);
+	});
+
 	socket.emit(_service._system.name);
     }
 });
