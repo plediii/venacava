@@ -34,4 +34,4 @@ exports.Relay = relay.Relay;
 
 exports.Service = service.Service;
 
-exports.util = require(__dirname + 'src/util');
+exports.util = require(__dirname + '/src/util');
