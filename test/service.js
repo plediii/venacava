@@ -175,4 +175,38 @@ describe('service', function () {
 	});
     });
 
+    describe('#disconnect', function () {
+
+	it('should be called when the service disconnects', function (done) {
+	    var service = newService({
+		system: newSystem('test', {})
+		, disconnect: function () {
+		    done();
+		}
+	    })
+	    , socket = new MockSocket()
+	    ;
+	    service.serve(socket, {});
+	    socket._receive('disconnect');
+	});
+
+	it('should be called with the session object', function (done) {
+	    var service = newService({
+		system: newSystem('test', {})
+		, disconnect: function (sess) {
+		    assert.equal(sess, session);
+		    done();
+		}
+	    })
+	    , socket = new MockSocket()
+	    , session = {
+		x: 1
+	    }
+	    ;
+	    service.serve(socket, session);
+	    socket._receive('disconnect');
+
+	});
+
+    });
 });
