@@ -34,11 +34,4 @@ exports.Relay = relay.Relay;
 
 exports.Service = service.Service;
 
-var printExec = function (err, replies) {
-    log('exec err = ', err);
-    if (replies) {
-	replies.forEach(function (reply, idx) {
-	    log('reply ', idx, ' is ', reply);
-	});
-    }
-}
+exports.util = require(__dirname + 'src/util');
