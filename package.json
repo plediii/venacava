@@ -5,15 +5,19 @@
   "scripts": {},
   "main": "venacava.js",
   "dependencies": {
-    "backbone" : "*",
+    "backbone": "*",
     "underscore": "*",
-    "redis": "*"
+    "redis": "*",
+    "grunt": "~0.4.2",
+    "grunt-contrib-jshint": "~0.8.0"
   },
-  "devDependencies": { 
+  "devDependencies": {
     "mocha": "1.0.3",
     "should": "0.6.3",
     "prompt": "0.1.12",
     "underscore": "*"
   },
-  "engines": { "node": "*" }
+  "engines": {
+    "node": "*"
+  }
 }
