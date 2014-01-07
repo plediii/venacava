@@ -16,7 +16,7 @@ var RedisEmitter = exports.RedisEmitter = function(redisSub) {
 _.extend(RedisEmitter.prototype, {
     subscribe: function (channel, listener) {
         var _this = this
-        , emitter = _this._emitter;
+        , emitter = _this._emitter
         ;
         emitter.on(channel, listener);
         if (_this.numListeners(channel) === 1) {
@@ -36,4 +36,4 @@ _.extend(RedisEmitter.prototype, {
     , numListeners: function (channel) {
         return this._emitter.listeners(channel).length;
     }
-})
+});

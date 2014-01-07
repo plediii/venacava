@@ -68,7 +68,7 @@
                     _this.emitMethod('subscribe');
                     _this.subscribed = true;
                     _this.events.trigger('subscribed', _this.subscribed);
-                }
+                };
                 _this._listener = function (msg) {
                     switch (msg.subject) {
                     case 'set': 
@@ -143,13 +143,12 @@
                              this.emitMethod(funcName, data);
                          }];
                      })));
-        }
+        };
 
         _.extend(_client.Service.prototype, {
             get: function  (id) {
                 var _service = this;
-                return _service._cache[id] 
-                    || (_service._cache[id] = new _service._ServiceInstance(id, _service.socket, new _service.Model()));
+                return _service._cache[id] || (_service._cache[id] = new _service._ServiceInstance(id, _service.socket, new _service.Model()));
             }
         });
 

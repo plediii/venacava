@@ -7,10 +7,10 @@ var _ = require('underscore')
 var log = console.log;
 
 var ListCore = exports.ListCore = function (channel, options) {
-    Core.call(this, channel, options)
+    Core.call(this, channel, options);
 };
 
-_.defaults(ListCore, Core)
+_.defaults(ListCore, Core);
 inherits(ListCore, Core);
 _.extend(ListCore.prototype, {
     length: function (cb) {
@@ -35,8 +35,9 @@ _.extend(ListCore.prototype, {
                 return cb(err);
             }
             else {
+                var val;
                 try {
-                    var val = JSON.parse(str);
+                    val = JSON.parse(str);
                 }
                 catch (e) {
                     return cb(e);

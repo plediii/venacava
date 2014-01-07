@@ -7,11 +7,11 @@ var _ = require('underscore')
 var log = console.log;
 
 var HashCore = exports.HashCore = function (channel, attrs, options) {
-    Core.call(this, channel, options)
+    Core.call(this, channel, options);
     this._attrs = attrs || {};
 };
 
-_.defaults(HashCore, Core)
+_.defaults(HashCore, Core);
 inherits(HashCore, Core);
 _.extend(HashCore.prototype, {
     initialize: function (attrs, options) {
@@ -114,7 +114,7 @@ _.extend(HashCore.prototype, {
                     });             
                     _this._attrs = attrs;
                     if (cb) {
-                        return cb(null)
+                        return cb(null);
                     }
                 }
                 else {

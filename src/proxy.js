@@ -32,7 +32,7 @@ _.extend(ProxyQueue.prototype, {
         if (_this._instance) {
             return _this;
         }
-        var model = _this._model.get(_this.id)
+        var model = _this._model.get(_this.id);
         _this._instance = _.extend({
             model: model
             , core: model.core
@@ -122,7 +122,7 @@ _.extend(ProxyQueue.prototype, {
                     if (err) {
                         log('uncaught error ', _this.queue, err);
                     }
-                }
+                };
             }
             args.push(function () {
                 argCb.apply(null, arguments);

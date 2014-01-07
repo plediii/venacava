@@ -39,7 +39,7 @@ _.extend(Model.prototype, {
     }
     , _initialize: function (instance, args, options) {
         var _this = this;
-        instance.core.initialize(_.defaults({}, args, _this.defaults), options)
+        instance.core.initialize(_.defaults({}, args, _this.defaults), options);
         _this.initialize.call(instance);
         return instance;
     }
@@ -55,7 +55,7 @@ _.extend(Model.prototype, {
     }
     , createIfNotExists: function (id, args, options, cb) {
         var _this = this
-        , instance = _this.get(id, args, options);
+        , instance = _this.get(id, args, options)
         ;
         if (_.isFunction(options)) {
             cb = options;

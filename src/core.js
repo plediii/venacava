@@ -14,7 +14,7 @@ _.each(['exists', 'erase'], function (funcName) {
     Core[funcName] = function (channel) {
         var core = new Core(channel);
         return core[funcName].apply(core, _.toArray(arguments).slice(1));
-    }
+    };
 });
 
 var logError = function (message) {

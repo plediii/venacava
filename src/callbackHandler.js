@@ -13,8 +13,8 @@ var callbackChannel = function (zip) {
 var CallbackHandler = exports.CallbackHandler = function (zip, redissub, redispub) {
     var _this = this;
     _this.zip = zip;
-    _this.redissub = redissub || CallbackHandler._redissub
-    _this.redispub = redispub || CallbackHandler._redispub
+    _this.redissub = redissub || CallbackHandler._redissub;
+    _this.redispub = redispub || CallbackHandler._redispub;
     _this.emitter = new EventEmitter();
     _this.nextHandle = (function () {
         var next = 0;
@@ -23,7 +23,7 @@ var CallbackHandler = exports.CallbackHandler = function (zip, redissub, redispu
             return {
                 zip: _this.zip
                 , id: next
-            }
+            };
         };
     })();
 
@@ -49,7 +49,7 @@ _.extend(CallbackHandler.prototype, {
         return JSON.stringify(handle);
     }
     , executeLocal: function (handle, args) {
-        this.emitter.emit(handle.id, args)
+        this.emitter.emit(handle.id, args);
     }
     , executeRemote: function (handle, args) {
         this.redispub.publish(callbackChannel(handle.zip), JSON.stringify({
@@ -60,6 +60,7 @@ _.extend(CallbackHandler.prototype, {
     , executeCallback: function (jsonHandle, args) {
         var _this = this
         , handle = JSON.parse(jsonHandle)
+        ;
         if (_this.zip === handle.zip) {
             _this.executeLocal(handle, args);
         }
