@@ -1,11 +1,11 @@
 module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
-	pkg: grunt.file.readJSON('package.json'),
-	jshint: {
+        pkg: grunt.file.readJSON('package.json'),
+        jshint: {
             options: {
-		laxcomma: true
-		// , smarttabs: true
+                laxcomma: true
+                // , smarttabs: true
             }
             , all: [ '*.js', 'src/*.js']
         }
