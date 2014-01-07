@@ -73,7 +73,7 @@ describe('proxy', function () {
         it('should create an instance with a channel', function () {
             assert(newProxy({model: newModel({})}).create({}).channel
                    , 'created proxy did not have a channel');
-        })
+        });
 
     });
 
@@ -162,7 +162,7 @@ describe('proxy', function () {
                 , methods: {
                     method: function (cb) {
                         assert.equal(this.core.get('x'), 1);
-                        return cb()
+                        return cb();
                     }
                 }
             })
@@ -199,7 +199,7 @@ describe('proxy', function () {
                     return done();
                 });             
             })
-            , method = _.bind(instance.method, instance);
+            , method = _.bind(instance.method, instance)
             ;
             _.delay(method, 400, finished);
             _.delay(method, 100, finished);
@@ -233,7 +233,7 @@ describe('proxy', function () {
                     return done();
                 });             
             })
-            , method = _.bind(instance.method, instance);
+            , method = _.bind(instance.method, instance)
             ;
             method(finished);
             method(finished);
@@ -242,7 +242,7 @@ describe('proxy', function () {
                 method(finished);
                 method(finished);
                 method(finished);
-            }, 400)
+            }, 400);
         }); 
 
         it('should not execute from different redis contexts concurrently ', function (done) {
@@ -369,7 +369,7 @@ describe('proxy', function () {
                 })
                 , methods: {
                     method: function (cb) {
-                        assert(this.model, 'invoked proxy instance did not have a model')
+                        assert(this.model, 'invoked proxy instance did not have a model');
                         assert(this.model.modelMethod, 'invoked proxy instance model did not have the modelMethod');
                         assert.equal(this.core.channel, channel, 'proxy did not have a core with the expected channel.');
                         this.model.modelMethod();

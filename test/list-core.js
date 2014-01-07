@@ -112,7 +112,7 @@ describe('list-core', function () {
             instance.push(two);
             instance.atIndex(1, function (err, x) {
                 assert.ifError(err);
-                assert.equal(x.y, two.y)
+                assert.equal(x.y, two.y);
                 done();
             });
         });
@@ -162,7 +162,7 @@ describe('list-core', function () {
             subRedis.on('message', function (channel, msg) {
                 var obj = JSON.parse(msg);
                 assert.equal(channel, core.channel);
-                assert(obj.hasOwnProperty('subject'))
+                assert(obj.hasOwnProperty('subject'));
                 assert.equal(obj.subject, 'push');
                 assert(obj.hasOwnProperty('body'));
                 assert.equal(obj.body.x, pushee.x);

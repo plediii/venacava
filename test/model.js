@@ -118,11 +118,11 @@ describe('Model', function () {
             , id = model.create({x: 1}).id
             ;
 
-            assert.equal(1,numCalled)
+            assert.equal(1, numCalled);
 
             return model.createIfNotExists(id, {x: 1}, function (err, instance) {
                 assert.ifError(err);
-                assert.equal(1,numCalled)
+                assert.equal(1,numCalled);
                 done();
             });
         });
@@ -308,7 +308,7 @@ describe('Model', function () {
                     }).create({});
                     assert(instance.method, 'instance was not created with the defined method'); 
                     assert.equal(typeof instance.method, 'function', 'instance was not created with the defined method as a function');
-                    instance.method(1)
+                    instance.method(1);
                 });
             });
 
@@ -384,7 +384,7 @@ describe('Model', function () {
             ;
             assert(dup.method);
             assert.equal('function', typeof dup.method); 
-            dup.method(1)
+            dup.method(1);
         });
     });
 });

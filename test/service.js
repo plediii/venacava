@@ -30,7 +30,7 @@ describe('service', function () {
             , get: function (id) {
                 return new Klass(id);
             }
-        }
+        };
     }
     ;
 
@@ -77,7 +77,7 @@ describe('service', function () {
                         done();
                     }
                     , otherMethod: function () {
-                        assert(false)
+                        assert(false);
                     }
                 }
             })

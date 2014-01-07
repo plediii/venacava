@@ -24,7 +24,7 @@ describe('RedisEmitter', function () {
         return {
             redis: redis
             , remitter: newRemitter(redis)
-        }
+        };
     }
     ;
 
@@ -62,7 +62,7 @@ describe('RedisEmitter', function () {
         ;
         
         context.remitter.subscribe(channel, listener);
-        context.remitter.unsubscribe(channel, listener)
+        context.remitter.unsubscribe(channel, listener);
         assert(!context.redis.subscriptions.hasOwnProperty(channel));
     });
 

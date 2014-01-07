@@ -148,7 +148,7 @@ describe('base-core', function () {
                 subRedis.on('message', function (channel, msg) {
                     var obj = JSON.parse(msg);
                     assert.equal(channel, instance.channel);
-                    assert(obj.hasOwnProperty('subject'))
+                    assert(obj.hasOwnProperty('subject'));
                     done();
                 });
                 subRedis.on('subscribe', function (channel, count) {
@@ -171,7 +171,7 @@ describe('base-core', function () {
                 subRedis.on('message', function (channel, msg) {
                     var obj = JSON.parse(msg);
                     assert.equal(channel, instance.channel);
-                    assert(obj.hasOwnProperty('subject'))
+                    assert(obj.hasOwnProperty('subject'));
                     assert.equal(obj.subject, subject);
                     assert(!obj.hasOwnProperty('body'));
                     done();
@@ -194,7 +194,7 @@ describe('base-core', function () {
                 subRedis.on('message', function (channel, msg) {
                     var obj = JSON.parse(msg);
                     assert.equal(channel, instance.channel);
-                    assert(obj.hasOwnProperty('subject'))
+                    assert(obj.hasOwnProperty('subject'));
                     assert.equal(obj.subject, subject);
                     assert(obj.hasOwnProperty('body'));
                     assert.deepEqual(body, obj.body);

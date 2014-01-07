@@ -146,7 +146,7 @@ describe('core', function () {
                 , y: Math.random()
             }
             ;
-            core.set(newAttrs)
+            core.set(newAttrs);
             assert.equal(newAttrs.x, core.get('x'), 'failed to set x through object argument');
             assert.equal(newAttrs.y, core.get('y'), 'failed to set y through object argument');
             assert.equal(attrs.z, core.get('z'), 'failed to preserve z after object argument');
@@ -197,7 +197,7 @@ describe('core', function () {
 
         it('should change the truthiness of associated has', function () {
             var core = newCore({x: 1});
-            core.unset('x')
+            core.unset('x');
             assert(!core.has('x'), 'unset did not change "has" value');
         });
 
@@ -243,7 +243,7 @@ describe('core', function () {
         it('should exist', function () {
             var core = newCore();
             assert(core.clear, 'core did not have a "clear" property'); 
-            assert(typeof core.clear, 'function', '"clear" property was not a function')
+            assert(typeof core.clear, 'function', '"clear" property was not a function');
         });
 
         it('should provide async', function (done) {
@@ -335,7 +335,7 @@ describe('core', function () {
     describe('#erase', function () {
         
         it('should exist', function () {
-            assert(HashCore.erase)
+            assert(HashCore.erase);
         });
 
         it('should erase existing cores', function (done) {
@@ -346,7 +346,7 @@ describe('core', function () {
                 assert.ifError(err);
                 assert(!exists, 'core was not erased.');
                 done();
-            })
+            });
         });
 
         describe(':instance', function () {
@@ -381,7 +381,7 @@ describe('core', function () {
             subRedis.on('message', function (channel, msg) {
                 var obj = JSON.parse(msg);
                 assert.equal(channel, core.channel, 'received message on unknown channel.');
-                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.');
                 assert.equal(obj.subject, 'set', 'message subject was not "set".');
                 assert(obj.hasOwnProperty('body'), 'message did not have a body');
                 assert.deepEqual(obj.body, attrs, 'wrong message body');
@@ -403,7 +403,7 @@ describe('core', function () {
             subRedis.on('message', function (channel, msg) {
                 var obj = JSON.parse(msg);
                 assert.equal(channel, core.channel, 'received message on unknown channel.');
-                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.');
                 assert.equal(obj.subject, 'unset', 'message subject was not "unset".');
                 assert(obj.hasOwnProperty('body'), 'message did not have a body');
                 assert(obj.body.hasOwnProperty('x'), 'message body did not have the expected atribute');
@@ -426,7 +426,7 @@ describe('core', function () {
             subRedis.on('message', function (channel, msg) {
                 var obj = JSON.parse(msg);
                 assert.equal(channel, core.channel, 'received message on unknown channel.');
-                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.')
+                assert(obj.hasOwnProperty('subject'), 'message did not have a subject.');
                 assert.equal(obj.subject, 'erased', 'message subject was not unset.');
                 done();
             });

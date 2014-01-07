@@ -12,15 +12,14 @@ var randomId = function () {
 };
 
 var newContext = function (options, Model, socketoptions) {
-    
-    var name = 'test'
-    , Model = Model || Backbone.Model
-    , model = Model.extend({
+
+    Model = Model || Backbone.Model;
+    var  model = Model.extend({
         urlRoot: name
     })
     , socket = new MockSocket(socketoptions)
     , client = new venaclient.Client(socket)
-    , name = randomId();
+    , name = randomId()
     ;
 
     return {
@@ -121,7 +120,7 @@ describe('venaclient', function () {
             });
 
             it('should provide instances', function () {
-                assert(newContext().service.get(randomId()))
+                assert(newContext().service.get(randomId()));
             });
 
             it('should have the service name', function () {
@@ -139,6 +138,7 @@ describe('venaclient', function () {
                 it('should have the instance channel', function () {
                     var id = randomId()
                     , service = newContext().service
+                    ;
                     assert.equal(service.get(id).channel, service.name + '/' + id);
                 });
 
@@ -387,7 +387,7 @@ describe('venaclient', function () {
                         instance.model.on('change:x', function () {
                             assert(!instance.model.has('x'));
                             done();
-                        })
+                        });
                         context.socket._receive(instance.channel, {
                             subject: 'unset'
                             , body: {
@@ -408,7 +408,7 @@ describe('venaclient', function () {
                             assert(added);
                             assert.equal(item.x, added.attributes.x);
                             done();
-                        })
+                        });
                         context.socket._receive(instance.channel, {
                             subject: 'push'
                             , body: item
@@ -432,7 +432,7 @@ describe('venaclient', function () {
                         ;
                         instance.subscribe();
                         instance.model.on('change:x', function () {
-                            called = called + 1
+                            called = called + 1;
                         });
                         context.socket._receive(instance.channel, {
                             subject: 'set'
@@ -489,9 +489,9 @@ describe('venaclient', function () {
                             assert(msg);
                             assert.equal(msg.id, instance.id);
                             assert.equal(msg.method, 'method');
-                            assert(msg.hasOwnProperty('data'), 'service method invocation msg did not have a data property.')
+                            assert(msg.hasOwnProperty('data'), 'service method invocation msg did not have a data property.');
                             assert.equal(msg.data.x, 1);
-                            done()
+                            done();
                         });
                         instance.method({
                             x: 1
