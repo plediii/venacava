@@ -7,7 +7,7 @@ module.exports = function(grunt) {
                 laxcomma: true
                 // , smarttabs: true
             }
-            , all: [ '*.js', 'src/*.js']
+            , all: [ '*.js', 'src/*.js', 'test/*.js']
         }
     });
 
