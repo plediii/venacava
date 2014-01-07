@@ -1,4 +1,4 @@
-
+"use strict";
 var _ = require('underscore');
 
 var Relay = exports.Relay = function (socket, remitter) {

@@ -1,4 +1,4 @@
-
+"use strict";
 var venaclient = require('../venaclient.js')
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter

@@ -1,4 +1,4 @@
-
+"use strict";
 var venacava = require('../venacava.js')
 , Core = venacava.Core
 , Model = venacava.Model

@@ -1,4 +1,4 @@
-
+"use strict";
 var _ = require('underscore')
 , redisClient = require(__dirname + '/redisClient')
 , callbackHandler = require(__dirname + '/callbackHandler')

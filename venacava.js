@@ -1,4 +1,4 @@
-
+"use strict";
 var _ = require('underscore')
 , proxy = require(__dirname + '/src/proxy')
 , callbackHandler = require(__dirname + '/src/callbackHandler')

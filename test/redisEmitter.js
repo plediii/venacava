@@ -1,4 +1,4 @@
-
+"use strict";
 var venacava = require('../venacava.js')
 , MockRedisSub = require('./mockredissub').MockRedisSub
 , RedisEmitter = venacava.RedisEmitter

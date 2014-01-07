@@ -1,4 +1,4 @@
-
+"use strict";
 var HashCore = require('../venacava.js').HashCore
 , assert = require('assert')
 , EventEmitter = require('events').EventEmitter

@@ -1,4 +1,4 @@
-
+"use strict";
 var venacava = require('../venacava.js')
 , redisClient = venacava.redisClient
 , Core = venacava.Core

@@ -1,4 +1,4 @@
-
+"use strict";
 var venacava = require('../venacava')
 , redisClient = venacava.redisClient
 , CallbackHandler = require('../venacava.js').CallbackHandler

@@ -1,4 +1,4 @@
-
+"use strict";
 var _ = require('underscore')
 , EventEmitter = require('events').EventEmitter
 , redisClient = require(__dirname + '/redisClient')

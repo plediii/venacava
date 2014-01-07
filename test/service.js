@@ -1,4 +1,4 @@
-
+"use strict";
 var venacava = require('../venacava.js')
 , Service = venacava.Service
 , assert = require('assert')

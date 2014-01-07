@@ -1,4 +1,4 @@
-
+"use strict";
 var ListCore = require('../venacava.js').ListCore
 , assert = require('assert')
 , redisClient = require('../src/redisClient')

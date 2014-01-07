@@ -1,4 +1,4 @@
-
+"use strict";
 var _ = require('underscore')
 , DefaultCore = require(__dirname + '/hash-core').HashCore
 , random_string = require(__dirname + '/util').random_string
