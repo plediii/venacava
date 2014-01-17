@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var venacava = require('../venacava.js')
 , Core = venacava.Core

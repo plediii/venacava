@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var venacava = require('../venacava')
 , redisClient = venacava.redisClient

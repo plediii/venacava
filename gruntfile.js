@@ -1,3 +1,5 @@
+/*jslint node: true */
+"use strict";
 module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
@@ -5,7 +7,13 @@ module.exports = function(grunt) {
         jshint: {
             options: {
                 laxcomma: true
-                // , smarttabs: true
+                , strict: true
+                , globals: { 'require': false 
+                             , 'describe': false
+                             , 'it': false
+                             , 'exports': false
+                             , 'before': false
+                           }
             }
             , all: [ '*.js', 'src/*.js', 'test/*.js']
         }

@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var HashCore = require('../venacava.js').HashCore
 , assert = require('assert')
