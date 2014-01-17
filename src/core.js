@@ -18,6 +18,8 @@ _.each(['exists', 'erase'], function (funcName) {
     };
 });
 
+var log = console.log;
+
 var logError = function (message) {
     return function (err) {
         if (err) {

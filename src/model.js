@@ -86,7 +86,7 @@ _.extend(Model.prototype, {
                     throw err;
                 }
                 if (!exists) {
-                    initialize(instance, _this.initialize, args, options);
+                    _this._initialize(instance, _this.initialize, args, options);
                 }
             }
         });

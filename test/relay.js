@@ -5,6 +5,7 @@ var venacava = require('../venacava.js')
 , MockSocket = require('./mocksocket').MockSocket
 , Relay = venacava.Relay
 , RedisEmitter = venacava.RedisEmitter
+, redis = venacava.redis
 , EventEmitter = require('events').EventEmitter
 , assert = require('assert')
 , _ = require('underscore')
