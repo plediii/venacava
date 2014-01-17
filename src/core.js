@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var _ = require('underscore')
 , crypto = require('crypto')
@@ -16,6 +17,8 @@ _.each(['exists', 'erase'], function (funcName) {
         return core[funcName].apply(core, _.toArray(arguments).slice(1));
     };
 });
+
+var log = console.log;
 
 var logError = function (message) {
     return function (err) {

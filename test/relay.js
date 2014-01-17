@@ -1,9 +1,11 @@
+/*jslint node: true */
 "use strict";
 var venacava = require('../venacava.js')
 , MockRedisSub = require('./mockredissub').MockRedisSub
 , MockSocket = require('./mocksocket').MockSocket
 , Relay = venacava.Relay
 , RedisEmitter = venacava.RedisEmitter
+, redis = venacava.redis
 , EventEmitter = require('events').EventEmitter
 , assert = require('assert')
 , _ = require('underscore')

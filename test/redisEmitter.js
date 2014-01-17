@@ -1,7 +1,9 @@
+/*jslint node: true */
 "use strict";
 var venacava = require('../venacava.js')
 , MockRedisSub = require('./mockredissub').MockRedisSub
 , RedisEmitter = venacava.RedisEmitter
+, redis = venacava.redis
 , assert = require('assert')
 , _ = require('underscore')
 ;
@@ -103,7 +105,7 @@ describe('RedisEmitter', function () {
             messages.push(['a', msg[1]]);
         }
         , countB = 0
-        , listenB = function () {
+        , listenB = function (msg) {
             assert.equal(msg[0], channelB);
             messages.push(['b', msg[1]]);
         }
@@ -167,7 +169,7 @@ describe('RedisEmitter', function () {
         , listenA = function (msg) {
             messages.push(['a', msg[1]]);
         }
-        , listenB = function () {
+        , listenB = function (msg) {
             messages.push(['b', msg[1]]);
         }
         ;

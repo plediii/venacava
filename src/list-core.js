@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var _ = require('underscore')
 , Core = require(__dirname + '/core.js').Core
@@ -57,7 +58,7 @@ _.extend(ListCore.prototype, {
                     return JSON.parse(str);
                 }
                 catch (e) {
-                    log('failed to parse list elelemtn in db ', result, e);
+                    log('failed to parse list element in db ', _this.channel, ' ' , str, e);
                     return void 0;
                 }
             }));

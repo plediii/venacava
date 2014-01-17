@@ -1,8 +1,10 @@
+/*jslint node: true */
 "use strict";
 var _ = require('underscore')
 , redisClient = require(__dirname + '/redisClient')
 , callbackHandler = require(__dirname + '/callbackHandler')
 , EventEmitter = require('events').EventEmitter
+, log = console.log
 ;
 
 

@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var venaclient = require('../venaclient.js')
 , assert = require('assert')

@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var ListCore = require('../venacava.js').ListCore
 , assert = require('assert')

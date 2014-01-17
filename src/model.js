@@ -1,3 +1,4 @@
+/*jslint node: true */
 "use strict";
 var _ = require('underscore')
 , DefaultCore = require(__dirname + '/hash-core').HashCore
@@ -85,7 +86,7 @@ _.extend(Model.prototype, {
                     throw err;
                 }
                 if (!exists) {
-                    initialize(instance, _this.initialize, args, options);
+                    _this._initialize(instance, _this.initialize, args, options);
                 }
             }
         });
